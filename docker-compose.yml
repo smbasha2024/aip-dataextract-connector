@@ -1,0 +1,28 @@
+services:
+
+  worker:
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: playwright-worker
+
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    volumes:
+      # SQLite database persistence
+      - ./data:/app/data
+
+      # screenshots/videos/logs
+      - ./logs:/app/logs
+
+    environment:
+      TZ: Asia/Kolkata
+
+    stdin_open: true
+
+    tty: true

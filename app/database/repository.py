@@ -1,6 +1,6 @@
 # repository.py
 import json
-from models import Task
+from app.database.models import Task
 from app.database.session import get_db
 
 def create_task(task_data):

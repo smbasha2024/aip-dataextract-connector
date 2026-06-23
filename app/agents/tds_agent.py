@@ -1,5 +1,5 @@
 # tds_agent.py
-from base_agent import BaseAgent
+from app.agents.base_agent import BaseAgent
 from playwright.sync_api import Playwright, sync_playwright, expect
 import asyncio
 

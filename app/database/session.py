@@ -1,7 +1,7 @@
 # session.py
 from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker
-from db import engine
+from app.database.db import engine
 
 
 SessionLocal = sessionmaker(

@@ -18,6 +18,14 @@ if errorlevel 1 (
 echo.
 echo Pulling latest image...
 
+# GitHub Container Registry Login
+echo "Logging into GitHub Container Registry..."
+
+echo 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 | docker login ghcr.io -u smbasha2024 --password-stdin
+if [ $? -ne 0 ]; then
+    echo "GHCR Login Failed"
+    exit 1
+fi
 docker pull ghcr.io/smbasha2024/aip-databextract-connector:1.0.0
 
 if not exist data mkdir data
@@ -26,7 +34,7 @@ if not exist logs mkdir logs
 echo.
 echo Removing existing container...
 
-docker rm -f aip-databextract-connector >nul 2>&1
+docker rm -f aip-databextract-connector >/dev/null 2>&1 || true
 
 echo.
 echo Starting container...
@@ -44,6 +52,15 @@ echo ====================================
 echo Installation Complete
 echo ====================================
 
-docker ps
+docker ps -a --filter "name=aip-databextract-connector"
+
+if ! docker ps --filter "name=aip-databextract-connector" --format "{{.Names}}" | grep -q "^aip-databextract-connector$"
+then
+docker logs aip-databextract-connector
+fi
+
+echo ""
+echo "Container Status:"
+docker ps -a --filter "name=aip-databextract-connector"
 
 pause

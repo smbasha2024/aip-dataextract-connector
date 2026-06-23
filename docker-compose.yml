@@ -4,7 +4,7 @@ services:
 
   aip-databextract-connector:
 
-    image: ghcr.io/smbasha2024/aip-databextract-connector:1.0.0
+    image: ghcr.io/smbasha2024/aip-databextract-connector:1.0.4
 
     container_name: aip-databextract-connector
 

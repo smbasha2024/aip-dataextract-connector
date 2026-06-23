@@ -19,7 +19,7 @@ async def websocket_client():
         ping_timeout=20
     ) as websocket:
 
-        print("Connected")
+        logger.info("Connected")
 
         while True:
             try:
@@ -32,10 +32,11 @@ async def websocket_client():
 
                 print(
                     f"Task queued "
-                    f"{task['job_id']}"
+                    f"{task['task_id']}"
                 )
+                logger.info(f"Task Queued. Task ID: {task_id}")
             except Exception as e:
-                print(f"WebSocket connection failed: {e}")
-                print("Retrying in 10 seconds...")
+                logger.error(f"WebSocket connection failed: {e}")
+                logger.info("Retrying in 10 seconds...")
 
                 await asyncio.sleep(RECONNECT_DELAY)

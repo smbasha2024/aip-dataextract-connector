@@ -3,6 +3,8 @@ FROM mcr.microsoft.com/playwright/python:v1.54.0
 
 WORKDIR /
 
+RUN apt-get update && apt-get install -y sqlite3 && rm -rf /var/lib/apt/lists/*
+
 # Copy requirements first for layer caching
 COPY requirements.txt .
 

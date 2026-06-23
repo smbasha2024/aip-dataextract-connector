@@ -1,12 +1,12 @@
+version: "3.9"
+
 services:
 
-  worker:
+  ric-databridge-connector:
 
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/Ricengg/ric-databridge-connector:1.0.0
 
-    container_name: playwright-worker
+    container_name: ric-databridge-connector
 
     restart: unless-stopped
 
@@ -14,15 +14,5 @@ services:
       - .env
 
     volumes:
-      # SQLite database persistence
       - ./data:/app/data
-
-      # screenshots/videos/logs
       - ./logs:/app/logs
-
-    environment:
-      TZ: Asia/Kolkata
-
-    stdin_open: true
-
-    tty: true

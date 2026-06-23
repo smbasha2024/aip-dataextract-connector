@@ -2,11 +2,11 @@ version: "3.9"
 
 services:
 
-  ric-databridge-connector:
+  aip-databextract-connector:
 
-    image: ghcr.io/Ricengg/ric-databridge-connector:1.0.0
+    image: ghcr.io/smbasha2024/aip-databextract-connector:1.0.0
 
-    container_name: ric-databridge-connector
+    container_name: aip-databextract-connector
 
     restart: unless-stopped
 

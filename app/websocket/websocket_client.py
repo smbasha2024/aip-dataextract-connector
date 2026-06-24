@@ -14,7 +14,7 @@ RECONNECT_DELAY = 10
 
 async def websocket_client():
     async with websockets.connect(
-        settings.server_ws,
+        f"{settings.server_ws}/{settings.client_id}",
         ping_interval=20,
         ping_timeout=20
     ) as websocket:

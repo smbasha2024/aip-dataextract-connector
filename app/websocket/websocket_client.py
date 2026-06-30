@@ -11,6 +11,7 @@ from websockets.exceptions import (
 from app.database.repository import create_task
 from app.runtime.task_queue import (TASK_QUEUE)
 from app.config.settings import settings
+from app.services.heartbeat_service import send_heartbeat
 
 import logging
 
@@ -23,6 +24,7 @@ logging.basicConfig(
 RECONNECT_DELAY = 10
 
 async def websocket_client():
+    heartbeat_task = None
     while True:
         try:
             logger.info("Connecting to WebSocket server...")
@@ -35,26 +37,76 @@ async def websocket_client():
 
                 logger.info("Connected to server")
 
+                heartbeat_task = asyncio.create_task(send_heartbeat(websocket))
+
                 while True:
+                    message = await websocket.recv()
                     try:
-                        message = await websocket.recv()
                         logger.info(f"Message Received: {message}")
 
                         task = json.loads(message)
                         logger.info(f"Task Loaded: {task}")
 
-                        if "payload" not in task:
-                            logger.warning("Received task without 'payload'. Skipping...")
+                        if not isinstance(task, dict):
+                            logger.warning("Received invalid task format. Expected a JSON object.")
                             continue
+
+                        #if "payload" not in task:
+                            #logger.warning("Received task without 'payload'. Skipping...")
+                            #continue
+
+                        required_fields = [
+                            "job_id",
+                            "tenant_id",
+                            "agent_name",
+                            "payload"
+                        ]
+
+                        missing = [
+                            field
+                            for field in required_fields
+                            if field not in task or task[field] in (None, "")
+                        ]
+
+                        if missing:
+                            logger.warning(
+                                f"Received task missing required fields: {missing}. Skipping..."
+                            )
+                            continue
+
                         task_id = create_task(task)
                         logger.info(f"Task Created. Task ID: {task_id}")
+                        if task_id is None:
+                            logger.warning(
+                                "Duplicate job_id '%s'. Ignoring message.",
+                                task["job_id"]
+                            )
+                            continue
 
                         await TASK_QUEUE.put(task_id)
                         logger.info(f"Task Queued. Task ID: {task_id}")
-                        
-                    except Exception as e:
-                        logger.error(f"WebSocket connection failed: {e}")
-                        logger.info("Retrying in 10 seconds...")
+                    
+                    except json.JSONDecodeError:
+                        logger.exception("Received invalid JSON. Skipping message.")
+
+                    except KeyError as e:
+                        logger.exception(f"Required field missing: {e}. Skipping message.")
+
+                    except ValueError as e:
+                        logger.exception(f"Invalid task data: {e}. Skipping message.")
+
+                    except TypeError as e:
+                        logger.exception(f"Invalid task type: {e}. Skipping message.")
+
+                    #except Exception as e:
+                        #logger.error(f"WebSocket connection failed: {e}")
+                        #logger.info("Retrying in 10 seconds...")
+                        #logger.exception("Error processing received task")
+        
+        except asyncio.CancelledError:
+            logger.info("WebSocket client stopped")
+            raise
+
         except (
             ConnectionRefusedError,
             OSError,
@@ -67,5 +119,14 @@ async def websocket_client():
         except Exception:
             logger.exception("Unexpected error in websocket client")
 
+        finally:
+            if heartbeat_task is not None:
+                heartbeat_task.cancel()
+                try:
+                    await heartbeat_task
+                except asyncio.CancelledError:
+                    pass
+                heartbeat_task = None
+        
         logger.info(f"Reconnecting in {RECONNECT_DELAY} seconds...")
         await asyncio.sleep(RECONNECT_DELAY)

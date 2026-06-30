@@ -1,5 +1,6 @@
 # repository.py
 import json
+from sqlalchemy.exc import IntegrityError
 from app.database.models import Task
 from app.database.session import get_db
 
@@ -22,6 +23,10 @@ def create_task(task_data):
             db.close()
 
             return task.id
+
+        except IntegrityError:
+            db.rollback()
+            return None
 
         finally:
             db.close()

@@ -58,6 +58,24 @@ def get_received_tasks():
         finally:
             db.close()
 
+def get_received_tasks(limit=30):
+    with get_db() as db:
+
+        tasks = (
+            db.query(Task)
+            .filter(Task.status == "RECEIVED")
+            .limit(limit)
+            .all()
+        )
+
+        return [
+            {
+                "id": t.id,
+                "job_id": t.job_id,
+            }
+            for t in tasks
+        ]
+    
 def mark_queued(task_id):
     with get_db() as db:
         try:
@@ -144,3 +162,27 @@ def get_unfinished_tasks():
         db.close()
 
         return tasks
+    
+def reset_unfinished_tasks():
+    with get_db() as db:
+        count = (
+            db.query(Task)
+            .filter(
+                Task.status.in_(
+                    [
+                        "RUNNING",
+                        "QUEUED"
+                    ]
+                )
+            )
+            .update(
+                {
+                    Task.status: "RECEIVED"
+                },
+                synchronize_session=False
+            )
+        )
+
+        db.commit()
+
+        return count

@@ -9,7 +9,6 @@ from websockets.exceptions import (
 )
 
 from app.database.repository import create_task
-from app.runtime.task_queue import (TASK_QUEUE)
 from app.config.settings import settings
 from app.services.heartbeat_service import send_heartbeat
 
@@ -42,18 +41,18 @@ async def websocket_client():
                 while True:
                     message = await websocket.recv()
                     try:
-                        logger.info(f"Message Received: {message}")
+                        logger.debug("Raw message: %s", message)
 
                         task = json.loads(message)
-                        logger.info(f"Task Loaded: {task}")
+                        logger.info(
+                            "Task received. job_id=%s agent=%s",
+                            task["job_id"],
+                            task["agent_name"],
+                        )
 
                         if not isinstance(task, dict):
                             logger.warning("Received invalid task format. Expected a JSON object.")
                             continue
-
-                        #if "payload" not in task:
-                            #logger.warning("Received task without 'payload'. Skipping...")
-                            #continue
 
                         required_fields = [
                             "job_id",
@@ -83,8 +82,7 @@ async def websocket_client():
                             )
                             continue
 
-                        await TASK_QUEUE.put(task_id)
-                        logger.info(f"Task Queued. Task ID: {task_id}")
+                        logger.info(f"Task Stored Successfully. Task ID: {task_id}")
                     
                     except json.JSONDecodeError:
                         logger.exception("Received invalid JSON. Skipping message.")

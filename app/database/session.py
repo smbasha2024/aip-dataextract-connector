@@ -7,7 +7,8 @@ from app.database.db import engine
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine
+    expire_on_commit=False,
+    bind=engine,
 )
 
 

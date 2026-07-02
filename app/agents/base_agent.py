@@ -1,5 +1,5 @@
 # base_agent.py
 
 class BaseAgent:
-    async def execute(self, payload: dict):
+    async def execute(self, task):
         raise NotImplementedError()

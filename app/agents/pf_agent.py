@@ -20,7 +20,7 @@ class PFAgent(BaseAgent):
 
         async with async_playwright() as pw:
             logger.info("Starting PF Agent. job_id=%s", job_id)
-            browser = await pw.chromium.launch(headless=False)
+            browser = await pw.chromium.launch(headless=True)
             context = await browser.new_context()
             try:
                 page = await context.new_page()
@@ -32,7 +32,7 @@ class PFAgent(BaseAgent):
 
                 await asyncio.sleep(3)
 
-                logger.info(f"Task completed successfully:{job_id}")
+                logger.info(f"PF Agent: Task completed successfully:{job_id}")
                 return {
                     "success": True
                 }

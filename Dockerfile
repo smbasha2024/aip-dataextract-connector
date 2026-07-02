@@ -1,5 +1,6 @@
 # Playwright image already contains browsers and dependencies
-FROM mcr.microsoft.com/playwright/python:v1.54.0
+#FROM mcr.microsoft.com/playwright/python:v1.54.0
+FROM mcr.microsoft.com/playwright/python:v1.60.0-noble
 
 WORKDIR /
 

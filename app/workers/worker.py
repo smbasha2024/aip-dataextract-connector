@@ -59,18 +59,43 @@ class Worker:
             mark_completed(task.id)
             
             logger.info(f"Task {task_id} completed. ")
-
-            await send_result({
-                    "job_id": task.job_id,
-                    "status": "completed",
-                    "output": result
-                })
-            logger.info(f"Task {task_id} Execution results are sent to Server. ")
+            try:
+                await send_result({
+                        "job_id": task.job_id,
+                        "agent_name": task.agent_name,
+                        "status": "completed",
+                        "output": result
+                    })
+                logger.info(f"Task {task_id} Execution results are sent to Server. ")
+            except Exception:
+                logger.exception(
+                    "Unable to send result for job %s.",
+                    task.job_id,
+                )
 
         except Exception as ex:
-            mark_failed(task_id, str(ex))
             logger.exception(
                 "Task %s execution failed.",
                 task_id,
             )
-        
+            mark_failed(task_id, str(ex))
+            try:
+                await send_result(
+                    {
+                        "job_id": task.job_id,
+                        "agent_name": task.agent_name,
+                        "status": "failed",
+                        "error": str(ex),
+                    }
+                )
+
+                logger.info(
+                    "Failure reported to server. job_id=%s",
+                    task.job_id,
+                )
+
+            except Exception:
+                logger.exception(
+                    "Unable to report failure for job %s.",
+                    task.job_id,
+                )

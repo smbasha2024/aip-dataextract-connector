@@ -4,7 +4,7 @@ services:
 
   aip-databextract-connector:
 
-    image: ghcr.io/smbasha2024/aip-databextract-connector:1.0.4
+    image: ghcr.io/smbasha2024/aip-databextract-connector:1.0.6
 
     container_name: aip-databextract-connector
 
@@ -13,6 +13,9 @@ services:
     env_file:
       - .env
 
+    ports:
+      - "5050:5050"
+    
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs

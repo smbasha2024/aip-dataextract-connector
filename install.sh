@@ -14,12 +14,12 @@ fi
 # GitHub Container Registry Login
 echo "Logging into GitHub Container Registry..."
 
-echo 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 | docker login ghcr.io -u smbasha2024 --password-stdin
+echo <enter key> | docker login ghcr.io -u smbasha2024 --password-stdin
 if [ $? -ne 0 ]; then
     echo "GHCR Login Failed"
     exit 1
 fi
-docker pull ghcr.io/smbasha2024/aip-databextract-connector:1.0.4
+docker pull ghcr.io/smbasha2024/aip-databextract-connector:1.0.6
 
 mkdir -p data
 mkdir -p logs
@@ -30,9 +30,10 @@ docker run -d \
   --name aip-databextract-connector \
   --restart unless-stopped \
   --env-file .env \
+  -p 5050:5050 \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/logs:/app/logs \
-  ghcr.io/smbasha2024/aip-databextract-connector:1.0.4
+  ghcr.io/smbasha2024/aip-databextract-connector:1.0.6
 
 docker ps -a --filter "name=aip-databextract-connector"
 

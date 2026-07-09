@@ -6,6 +6,8 @@ from app.workers.worker import (Worker)
 from app.recovery import (recover)
 from app.config.settings import settings
 
+import uvicorn
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -13,6 +15,24 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
+
+async def start_local_ui():
+    try:
+        logger.info("Starting Local UI...")
+
+        server = uvicorn.Server(
+            uvicorn.Config(
+                "app.ui.server:app",
+                host="0.0.0.0",
+                port=5050,
+                log_level="info",
+            )
+        )
+
+        await server.serve()
+
+    except Exception:
+        logger.exception("Failed to start Local UI")
 
 async def main():
     create_database()   # Create tables if they don't exist
@@ -41,7 +61,13 @@ async def main():
         websocket_client(),
         name="websocket-client",
     )
-    await asyncio.gather(websocket, orchestrator_task, *workers)
+
+    ui_task = asyncio.create_task(
+        start_local_ui(),
+        name="ui",
+    )
+    
+    await asyncio.gather(websocket, orchestrator_task, ui_task, *workers)
 
 if __name__ == "__main__":
     try:

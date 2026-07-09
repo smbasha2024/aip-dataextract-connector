@@ -1,0 +1,36 @@
+<html>
+
+<body>
+
+<h2>{{title}}</h2>
+
+{% if image %}
+
+<img src="data:image/png;base64,{{image}}">
+
+{% endif %}
+
+<form action="/submit" method="post">
+
+<input
+    type="hidden"
+    name="request_id"
+    value="{{request_id}}" ̰
+/>
+
+<input
+    type="text"
+    name="value"
+/>
+
+<button>
+
+Submit
+
+</button>
+
+</form>
+
+</body>
+
+</html>

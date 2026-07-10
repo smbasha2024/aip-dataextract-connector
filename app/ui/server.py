@@ -1,10 +1,36 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi import Form
 
 from app.services.input_service import INPUT_SERVICE
 
-app = FastAPI()
+from fastapi import WebSocket
+from fastapi import WebSocketDisconnect
+
+from app.events.websocket_manager import WS_MANAGER
+
+app = FastAPI(title="AIProxys Connector API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "*",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket,):
+    await WS_MANAGER.connect(websocket)
+
+    try:
+        while True:
+            await websocket.receive_text()
+
+    except WebSocketDisconnect:
+        WS_MANAGER.disconnect(websocket)
 
 @app.get("/", response_class=HTMLResponse)
 async def home():

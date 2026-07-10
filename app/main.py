@@ -5,9 +5,9 @@ from app.websocket.websocket_client import (websocket_client)
 from app.workers.worker import (Worker)
 from app.recovery import (recover)
 from app.config.settings import settings
+from app.events.broker import EVENT_BROKER
 
 import uvicorn
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,21 @@ async def main():
     create_database()   # Create tables if they don't exist
     await recover()
 
+    await EVENT_BROKER.start()
+
+    # 1. Local UI
+    ui_task = asyncio.create_task(
+        start_local_ui(),
+        name="ui",
+    )
+
+    # 2. Cloud WebSocket client
+    websocket = asyncio.create_task(
+        websocket_client(),
+        name="websocket-client",
+    )
+
+    # 3. Orchestrator
     orchestrator = Orchestrator()
 
     orchestrator_task = asyncio.create_task(
@@ -45,6 +60,7 @@ async def main():
         name="orchestrator",
     )
     
+    # 4. Workers
     workers = []
     worker_id = 0
     for _ in range(settings.max_parallel_agents):
@@ -56,16 +72,6 @@ async def main():
                 name=f"worker-{worker_id}",
             )
         )
-
-    websocket = asyncio.create_task(
-        websocket_client(),
-        name="websocket-client",
-    )
-
-    ui_task = asyncio.create_task(
-        start_local_ui(),
-        name="ui",
-    )
     
     await asyncio.gather(websocket, orchestrator_task, ui_task, *workers)
 

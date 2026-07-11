@@ -3,6 +3,7 @@ import json
 import logging
 
 from app.config.settings import settings
+from app.events.broker import EVENT_BROKER
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -18,9 +19,12 @@ async def send_heartbeat(websocket):
                 "client_id": settings.client_id
             }))
 
-            logger.debug("Heartbeat sent")
+            await EVENT_BROKER.heartbeat()
+            
+            logger.info("Cloud Service Heartbeat sent")
 
             await asyncio.sleep(10)
 
         except Exception:
+            logger.exception("Error sending Cloud Service Heartbeat")
             break

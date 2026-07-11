@@ -1,11 +1,10 @@
+from app.events.connector_status import ConnectorStatus
 from app.runtime.task_queue import (TASK_QUEUE)
 from app.registry.agent_registry import (AGENTS)
 from app.database.repository import (get_task, update_status, mark_running, mark_completed, mark_failed)
 from app.services.result_service import (send_result)
-from app.config.settings import settings
 
-import json
-import httpx
+from app.events.broker import EVENT_BROKER
 
 import logging
 
@@ -34,6 +33,8 @@ class Worker:
                 TASK_QUEUE.task_done()
     
     async def process_task(self, task_id):
+        task = None
+
         try:
             task = get_task(task_id)
             if task is None:
@@ -42,8 +43,11 @@ class Worker:
                     task_id,
                 )
                 return
-            mark_running(task.id)
             
+            mark_running(task.id)
+            await EVENT_BROKER.job_started(task)
+            await EVENT_BROKER.worker_started()
+            await EVENT_BROKER.status(ConnectorStatus.BUSY)
             #payload = json.loads(task.payload)
 
             agent_class = AGENTS.get(task.agent_name)
@@ -56,8 +60,12 @@ class Worker:
 
             logger.info(f"Task {task_id} Execution Started. ")
             result = await agent.execute(task)
+
             mark_completed(task.id)
-            
+            await EVENT_BROKER.job_completed(task, result)
+            await EVENT_BROKER.status(ConnectorStatus.IDLE)
+            await EVENT_BROKER.worker_finished()
+
             logger.info(f"Task {task_id} completed. ")
             try:
                 await send_result({
@@ -78,7 +86,10 @@ class Worker:
                 "Task %s execution failed.",
                 task_id,
             )
+
             mark_failed(task_id, str(ex))
+            await EVENT_BROKER.job_failed(task, ex)
+
             try:
                 await send_result(
                     {

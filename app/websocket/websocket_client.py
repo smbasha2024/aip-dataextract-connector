@@ -6,10 +6,16 @@ from websockets.exceptions import (
     ConnectionClosed,
     ConnectionClosedError,
     InvalidURI,
+    InvalidMessage,
+    InvalidStatus,
 )
 
+from app.database.models import Task
 from app.database.repository import create_task
 from app.config.settings import settings
+from app.events.broker import EVENT_BROKER
+from app.events.connector_status import ConnectorStatus
+from app.events.log_level import LogLevel
 from app.services.heartbeat_service import send_heartbeat
 
 import logging
@@ -26,15 +32,18 @@ async def websocket_client():
     heartbeat_task = None
     while True:
         try:
-            logger.info("Connecting to WebSocket server...")
+            ws_url = f"{settings.server_ws}/{settings.client_id}"
+            logger.info("Connecting to WebSocket server... %s", ws_url)
 
             async with websockets.connect(
-                f"{settings.server_ws}/{settings.client_id}",
+                ws_url,
                 ping_interval=20,
-                ping_timeout=20
+                ping_timeout=20,
+                open_timeout=20,
             ) as websocket:
 
-                logger.info("Connected to server")
+                logger.info("Connected to Cloud server")
+                await EVENT_BROKER.status(ConnectorStatus.CONNECTED)
 
                 heartbeat_task = asyncio.create_task(send_heartbeat(websocket))
 
@@ -43,16 +52,19 @@ async def websocket_client():
                     try:
                         logger.debug("Raw message: %s", message)
 
-                        task = json.loads(message)
-                        logger.info(
-                            "Task received. job_id=%s agent=%s",
-                            task["job_id"],
-                            task["agent_name"],
-                        )
-
-                        if not isinstance(task, dict):
-                            logger.warning("Received invalid task format. Expected a JSON object.")
+                        data = json.loads(message)
+                        if not isinstance(data, dict):
+                            logger.warning(
+                                "Received invalid message from cloud server. Expected JSON object."
+                            )
                             continue
+
+                        task = Task(**data)
+                        logger.info(
+                            "Task received from cloud server. job_id=%s agent=%s",
+                            task.job_id,
+                            task.agent_name,
+                        )
 
                         required_fields = [
                             "job_id",
@@ -64,37 +76,47 @@ async def websocket_client():
                         missing = [
                             field
                             for field in required_fields
-                            if field not in task or task[field] in (None, "")
+                            if getattr(task, field, None) in (None, "")
                         ]
 
                         if missing:
                             logger.warning(
-                                f"Received task missing required fields: {missing}. Skipping..."
+                                f"Received task from cloud server missing required fields: {missing}. Skipping..."
                             )
                             continue
 
-                        task_id = create_task(task)
-                        logger.info(f"Task Created. Task ID: {task_id}")
-                        if task_id is None:
+                        saved_task = create_task(task)
+
+                        if saved_task is None:
                             logger.warning(
                                 "Duplicate job_id '%s'. Ignoring message.",
-                                task["job_id"]
+                                task.job_id,
                             )
                             continue
 
-                        logger.info(f"Task Stored Successfully. Task ID: {task_id}")
+                        logger.info("Task received from cloud server is stored successfully. job_id=%s task_id=%s agent=%s", saved_task.job_id, saved_task.id, saved_task.agent_name,)
+
+                        await EVENT_BROKER.job_received(saved_task)
+                        await EVENT_BROKER.log(
+                            source="websocket",
+                            level=LogLevel.INFO,
+                            job_id=saved_task.job_id,
+                            message=f"Task received ({saved_task.agent_name})",
+                        )
+
+                        logger.info(f"Cloud Server Task Stored Successfully. Task ID: {saved_task.id}")
                     
                     except json.JSONDecodeError:
-                        logger.exception("Received invalid JSON. Skipping message.")
+                        logger.exception("Received invalid JSON from cloud server. Skipping message.")
 
                     except KeyError as e:
-                        logger.exception(f"Required field missing: {e}. Skipping message.")
+                        logger.exception(f"Required field missing from cloud server task: {e}. Skipping message.")
 
                     except ValueError as e:
-                        logger.exception(f"Invalid task data: {e}. Skipping message.")
+                        logger.exception(f"Invalid task data from cloud server: {e}. Skipping message.")
 
                     except TypeError as e:
-                        logger.exception(f"Invalid task type: {e}. Skipping message.")
+                        logger.exception(f"Invalid task type from cloud server: {e}. Skipping message.")
 
                     #except Exception as e:
                         #logger.error(f"WebSocket connection failed: {e}")
@@ -102,8 +124,20 @@ async def websocket_client():
                         #logger.exception("Error processing received task")
         
         except asyncio.CancelledError:
-            logger.info("WebSocket client stopped")
+            logger.info("WebSocket client stopped with the Cloud server.")
             raise
+
+        except InvalidMessage as e:
+            logger.warning(
+                "WebSocket handshake failed. Cloud Server did not send a valid HTTP response: %s",
+                e,
+            )
+
+        except InvalidStatus as e:
+            logger.warning(
+                "Cloud Server WebSocket rejected the connection: %s",
+                e,
+            )
 
         except (
             ConnectionRefusedError,
@@ -112,7 +146,8 @@ async def websocket_client():
             ConnectionClosedError,
             InvalidURI,
         ) as e:
-            logger.warning(f"Connection lost: {e}")
+            logger.warning(f"Connection lost with Cloud Server: {e}")
+            await EVENT_BROKER.status(ConnectorStatus.DISCONNECTED)
 
         except Exception:
             logger.exception("Unexpected error in websocket client")
@@ -120,11 +155,12 @@ async def websocket_client():
         finally:
             if heartbeat_task is not None:
                 heartbeat_task.cancel()
+                logger.info("Heartbeat stopped with Cloud Server.")
                 try:
                     await heartbeat_task
                 except asyncio.CancelledError:
                     pass
                 heartbeat_task = None
         
-        logger.info(f"Reconnecting in {RECONNECT_DELAY} seconds...")
+        logger.info(f"Reconnecting to Cloud Server in {RECONNECT_DELAY} seconds...")
         await asyncio.sleep(RECONNECT_DELAY)

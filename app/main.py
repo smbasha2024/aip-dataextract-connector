@@ -1,5 +1,6 @@
 import asyncio
 from app.database.create_db import create_database
+from app.events.connector_status import ConnectorStatus
 from app.orchestrator.orchestrator import Orchestrator
 from app.websocket.websocket_client import (websocket_client) 
 from app.workers.worker import (Worker)
@@ -36,8 +37,11 @@ async def start_local_ui():
 
 async def main():
     create_database()   # Create tables if they don't exist
-    await recover()
+    await EVENT_BROKER.status(ConnectorStatus.STARTING)
 
+    await recover()
+    await EVENT_BROKER.status(ConnectorStatus.RECOVERING)
+    
     await EVENT_BROKER.start()
 
     # 1. Local UI

@@ -90,7 +90,7 @@ async def submit(
     value: str = Form(...),
 ):
 
-    ok = INPUT_SERVICE.submit(
+    ok = await INPUT_SERVICE.submit(
         request_id,
         value,
     )

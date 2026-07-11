@@ -8,12 +8,11 @@ def create_task(task_data):
     with get_db() as db:
         try:
             task = Task(
-                job_id=task_data["job_id"],
-                agent_name=task_data["agent_name"],
-                payload=json.dumps(
-                    task_data["payload"]
-                ),
-                status="RECEIVED"
+                job_id=task_data.job_id,
+                tenant_id=task_data.tenant_id,
+                agent_name=task_data.agent_name,
+                payload=json.dumps(task_data.payload),
+                status="RECEIVED",
             )
 
             db.add(task)
@@ -22,7 +21,7 @@ def create_task(task_data):
             db.refresh(task)
             db.close()
 
-            return task.id
+            return task
 
         except IntegrityError:
             db.rollback()
@@ -61,20 +60,12 @@ def get_received_tasks():
 def get_received_tasks(limit=30):
     with get_db() as db:
 
-        tasks = (
+        return (
             db.query(Task)
             .filter(Task.status == "RECEIVED")
             .limit(limit)
             .all()
         )
-
-        return [
-            {
-                "id": t.id,
-                "job_id": t.job_id,
-            }
-            for t in tasks
-        ]
     
 def mark_queued(task_id):
     with get_db() as db:

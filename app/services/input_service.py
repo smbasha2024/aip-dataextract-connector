@@ -1,6 +1,8 @@
 import asyncio
 import uuid
 
+from app.events.broker import EVENT_BROKER
+
 class InputService:
 
     def __init__(self):
@@ -19,6 +21,15 @@ class InputService:
             "image": image,
         }
 
+        await EVENT_BROKER.input_required(
+            request_id=request_id,
+            job_id=job_id,
+            title=title,
+            message=message,
+            input_type=input_type,
+            image=image,
+        )
+        
         try:
             return await asyncio.wait_for(future, timeout,)
 
@@ -44,13 +55,19 @@ class InputService:
             "image": item["image"],
         }
 
-    def submit(self, request_id, value,):
+    async def submit(self, request_id, value,):
         item = self.pending.get(request_id)
 
         if item is None:
             return False
 
-        item["future"].set_result(value)
+        await EVENT_BROKER.input_received(
+            request_id=request_id,
+            job_id=item["job_id"],
+        )
+
+        if not item["future"].done():
+            item["future"].set_result(value)
 
         return True
 

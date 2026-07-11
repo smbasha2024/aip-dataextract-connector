@@ -15,8 +15,10 @@ class Task(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    job_id = Column(String, unique=True, nullable=False)
+    job_id = Column(String, nullable=False)
+    tenant_id = Column(String, nullable=False)
     agent_name = Column(String, nullable=False)
+    msg_to = Column(String, nullable=True)
     payload = Column(Text, nullable=False)
     status = Column(String, nullable=False)
 

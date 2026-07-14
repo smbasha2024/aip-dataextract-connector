@@ -3,13 +3,13 @@ from datetime import datetime, timezone
 import uuid
 from typing import Any
 from app.events.event_types import EventType
-
+from dataclasses import dataclass, field, asdict
 
 @dataclass
 class Event:
     type: EventType
     source: str
-    payload: dict[str, Any] = field(default_factory=dict)
+    payload: Any = field(default_factory=dict)
     job_id: str | None = None
     task_id: int | None = None
     event_id: str = field(
@@ -29,5 +29,9 @@ class Event:
             "type": self.type.value,
             "source": self.source,
             "job_id": self.job_id,
-            "payload": self.payload,
+            "payload": (
+                asdict(self.payload)
+                if hasattr(self.payload, "__dataclass_fields__")
+                else self.payload
+            ),
         }

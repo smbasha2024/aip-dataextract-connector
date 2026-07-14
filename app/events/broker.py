@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import Any
 
 from app.config.settings import settings
 from app.events.event import Event
@@ -7,6 +8,20 @@ from app.events.event_types import EventType
 from app.events.connector_status import ConnectorStatus
 from app.events.log_level import LogLevel
 from app.runtime.task_queue import TASK_QUEUE
+from app.events.event_payloads import (
+    JobReceivedPayload,
+    JobQueuedPayload,
+    JobStartedPayload,
+    JobCompletedPayload,
+    JobFailedPayload,
+    ProgressPayload,
+    DownloadPayload,
+    LogPayload,
+    StatusPayload,
+    HeartbeatPayload,
+    InputRequiredPayload,
+    InputReceivedPayload,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -73,16 +88,18 @@ class EventBroker:
         if self.running_workers > 0:
             self.running_workers -= 1
 
-    async def publish_event(self, event_type: EventType, source: str, job_id: str | None = None, payload: dict | None = None,):
+    async def publish_event(self, event_type: EventType, source: str, job_id: str | None = None, payload: Any = None,):
         """
         Convenience helper to create and publish an Event.
         """
+        if payload is None:
+            payload = {}
 
         event = Event(
             type=event_type,
             source=source,
             job_id=str(job_id) if job_id is not None else None,
-            payload=payload or {},
+            payload=payload,
         )
         await self.publish(event)
     
@@ -91,11 +108,10 @@ class EventBroker:
             event_type=EventType.JOB_STARTED,
             source="worker",
             job_id=task.job_id,
-            payload={
-                "task_id": task.id,
-                "agent_name": task.agent_name,
-                "status": "running",
-            },
+            payload=JobStartedPayload(
+                task_id=task.id,
+                agent_name=task.agent_name,
+            ),
         )
     
     async def job_completed(self, task, result,):
@@ -103,12 +119,11 @@ class EventBroker:
             event_type=EventType.JOB_COMPLETED,
             source="worker",
             job_id=task.job_id,
-            payload={
-                "task_id": task.id,
-                "agent_name": task.agent_name,
-                "status": "completed",
-                "output": result,
-            },
+            payload=JobCompletedPayload(
+                task_id=task.id,
+                agent_name=task.agent_name,
+                output=result,
+            ),
         )
     
     async def job_failed(self, task, error,):
@@ -116,12 +131,11 @@ class EventBroker:
             event_type=EventType.JOB_FAILED,
             source="worker",
             job_id=task.job_id if task else None,
-            payload={
-                "task_id": task.id if task else None,
-                "agent_name": task.agent_name if task else None,
-                "status": "failed",
-                "error": str(error),
-            },
+            payload=JobFailedPayload(
+                task_id=task.id if task else None,
+                agent_name=task.agent_name if task else None,
+                error=str(error),
+            ),
         )
 
     async def job_received(self, task):
@@ -129,11 +143,10 @@ class EventBroker:
             event_type=EventType.JOB_RECEIVED,
             source="websocket",
             job_id=task.job_id,
-            payload={
-                "task_id": task.id,
-                "agent_name": task.agent_name,
-                "status": "received",
-            },
+            payload=JobReceivedPayload(
+                task_id=task.id,
+                agent_name=task.agent_name,
+            ),
         )
 
     async def job_queued(self, task):
@@ -141,11 +154,10 @@ class EventBroker:
             event_type=EventType.JOB_QUEUED,
             source="orchestrator",
             job_id=task.job_id,
-            payload={
-                "task_id": task.id,
-                "agent_name": task.agent_name,
-                "status": "queued",
-            },
+            payload=JobQueuedPayload(
+                task_id=task.id,
+                agent_name=task.agent_name,
+            ),
         )
 
     async def input_required(self, request_id, job_id, title, message, input_type, image=None,):
@@ -153,13 +165,13 @@ class EventBroker:
             event_type=EventType.INPUT_REQUIRED,
             source="input_service",
             job_id=job_id,
-            payload={
-                "request_id": request_id,
-                "title": title,
-                "message": message,
-                "input_type": input_type,
-                "image": image,
-            },
+            payload=InputRequiredPayload(
+                request_id=request_id,
+                title=title,
+                message=message,
+                input_type=input_type,
+                image=image,
+            ),
         )
     
     async def input_received(self, request_id, job_id,):
@@ -167,9 +179,9 @@ class EventBroker:
             event_type=EventType.INPUT_RECEIVED,
             source="input_service",
             job_id=job_id,
-            payload={
-                "request_id": request_id,
-            },
+            payload=InputReceivedPayload(
+                request_id=request_id,
+            ),
         )
     
     async def download_ready(self, task, filename, path,):
@@ -177,11 +189,11 @@ class EventBroker:
             event_type=EventType.DOWNLOAD_READY,
             source=task.agent_name,
             job_id=task.job_id,
-            payload={
-                "task_id": task.id,
-                "filename": filename,
-                "path": path,
-            },
+            payload=DownloadPayload(
+                task_id=task.id,
+                filename=filename,
+                path=path,
+            ),
         )
 
     async def agent_progress(self, task, step, progress, level=LogLevel.INFO,):
@@ -189,11 +201,11 @@ class EventBroker:
             event_type=EventType.LOG,
             source=task.agent_name,
             job_id=task.job_id,
-            payload={
-                "task_id": task.id,
-                "step": step,
-                "progress": progress,
-            },
+            payload=ProgressPayload(
+                task_id=task.id,
+                step=step,
+                progress=progress,
+            ),
         )
     
     async def log(self, source, level, message, job_id=None,):
@@ -201,31 +213,29 @@ class EventBroker:
             event_type=EventType.LOG,
             source=source,
             job_id=job_id,
-            payload={
-                "level": level.value,
-                "message": message,
-            },
+            payload=LogPayload(
+                level=level.value,
+                message=message,
+            ),
         )
     
     async def status(self, status,):
         await self.publish_event(
             event_type=EventType.STATUS,
             source="connector",
-            payload={
-                "status": status.value,
-                "running_workers": self.running_workers,
-                "queue_size": TASK_QUEUE.qsize(),
-                "max_workers": settings.max_parallel_agents,
-            },
+            payload=StatusPayload(
+                status=status.value,
+                running_workers=self.running_workers,
+                queue_size=TASK_QUEUE.qsize(),
+                max_workers=settings.max_parallel_agents,
+            ),
         )
     
     async def heartbeat(self):
         await self.publish_event(
             event_type=EventType.HEARTBEAT,
             source="connector",
-            payload={
-                "alive": True,
-            },
+            payload=HeartbeatPayload()
         )
 
 EVENT_BROKER = EventBroker()

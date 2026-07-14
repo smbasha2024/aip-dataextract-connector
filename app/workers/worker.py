@@ -63,8 +63,8 @@ class Worker:
 
             mark_completed(task.id)
             await EVENT_BROKER.job_completed(task, result)
-            await EVENT_BROKER.status(ConnectorStatus.IDLE)
             await EVENT_BROKER.worker_finished()
+            await EVENT_BROKER.status(ConnectorStatus.IDLE)
 
             logger.info(f"Task {task_id} completed. ")
             try:
@@ -89,6 +89,8 @@ class Worker:
 
             mark_failed(task_id, str(ex))
             await EVENT_BROKER.job_failed(task, ex)
+            await EVENT_BROKER.worker_finished()
+            await EVENT_BROKER.status(ConnectorStatus.IDLE)
 
             try:
                 await send_result(

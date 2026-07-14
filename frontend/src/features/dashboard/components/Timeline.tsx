@@ -5,13 +5,7 @@ export default function Timeline() {
     const events = useConnectorStore((s) => s.timeline);
 
     return (
-        <div className="rounded-xl bg-white shadow border border-slate-200 h-[420px] flex flex-col">
-
-            <div className="px-6 py-4 border-b">
-                <h2 className="text-lg font-semibold">
-                    Timeline
-                </h2>
-            </div>
+        <div className="rounded-xl bg-white shadow border border-slate-200 flex flex-col">
 
             <div className="flex-1 overflow-auto">
 

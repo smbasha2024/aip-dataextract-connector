@@ -1,10 +1,18 @@
 import { useConnectorStore } from "../../../store/connectorStore";
+import { useMemo } from "react";
 
 export default function JobTable() {
-
+    /*
     const jobs = useConnectorStore((s) =>
         Object.values(s.jobs).sort((a, b) => b.task_id - a.task_id)
     );
+    */
+    const jobsMap = useConnectorStore((s) => s.jobs);
+    const jobs = useMemo(() => {
+        return Object.values(jobsMap).sort(
+            (a, b) => b.task_id - a.task_id
+        );
+    }, [jobsMap]);
 
     return (
         <div className="rounded-xl bg-white shadow border border-slate-200">

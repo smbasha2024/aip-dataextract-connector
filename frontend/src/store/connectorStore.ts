@@ -124,10 +124,17 @@ create<ConnectorStore>((set) => ({
         }),
     
     addTimelineEvent: (event) =>
-        set((state) => ({
-            timeline: [
-                event,
-                ...state.timeline,
-            ].slice(0, 500),
-        })),
+        set((state) => {
+            if (state.timeline.some(e => e.id === event.id)) {
+                console.warn("Duplicate timeline event:", event.id);
+
+                return state;      // <-- IMPORTANT
+            }
+            return {
+                timeline: [
+                    event,
+                    ...state.timeline,
+                ].slice(0, 500),
+            };
+        }),
 }));

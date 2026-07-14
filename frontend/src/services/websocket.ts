@@ -32,6 +32,16 @@ class ConnectorWebSocket {
             store.setConnected(true);
         };
 
+        this.socket.onmessage = (message) => {
+            console.log("RAW:", message.data);
+            const event = JSON.parse(message.data);
+            console.log(
+                event.id,
+                event.type
+            );
+            this.handleEvent(event);
+        };
+
         this.socket.onclose = () => {
             console.log("Dashboard disconnected.");
             store.setConnected(false);

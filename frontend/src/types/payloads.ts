@@ -28,7 +28,11 @@ export interface DownloadPayload {
     filename: string;
     path: string;
 }
-
+export interface DownloadEntry extends DownloadPayload {
+    job_id: string | null;
+    timestamp: string;
+    source: string;
+}
 export interface InputRequiredPayload {
     request_id: string;
     title: string;

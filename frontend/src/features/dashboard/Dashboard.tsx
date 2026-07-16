@@ -5,6 +5,8 @@ import Timeline from "./components/Timeline";
 import DownloadsPanel from "./components/DownloadsPanel";
 import Logs from "./components/Logs";
 import InputDialog from "./components/InputDialog";
+import DashboardStats from "./components/DashboardStats";
+import Footer from "./components/Footer";
 
 export default function Dashboard() {
     return (
@@ -19,6 +21,9 @@ export default function Dashboard() {
 
                 {/* Status Cards */}
                 <StatusCards />
+
+                {/* Dashboard Stats Cards */}
+                <DashboardStats />
 
                 {/* Jobs */}
 
@@ -106,6 +111,8 @@ export default function Dashboard() {
 
                 </div>
 
+                {/* Footer */}
+                <Footer />
             </div>
 
         </div>

@@ -7,4 +7,5 @@ export interface Job {
     step?: string;
     started_at?: string;
     completed_at?: string;
+    last_update?: string;
 }

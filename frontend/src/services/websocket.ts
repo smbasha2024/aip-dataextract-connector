@@ -157,7 +157,12 @@ class ConnectorWebSocket {
             case EventType.LOG:{
                 const payload = event.payload as LogPayload;
 
-                store.addLog(payload);
+                store.addLog({
+                    ...payload,
+                    job_id: event.job_id,
+                    timestamp: event.timestamp,
+                    source: event.source,
+                });
 
                 if (payload.task_id !== undefined) {
                     store.updateJobProgress(
@@ -170,10 +175,19 @@ class ConnectorWebSocket {
                 break;
             }
 
-            case EventType.DOWNLOAD_READY:
-                store.addDownload(event.payload as DownloadPayload);
-                break;
+            case EventType.DOWNLOAD_READY: {
+                const payload = event.payload as DownloadPayload;
 
+                store.addDownload({
+                    ...payload,
+                    job_id: event.job_id,
+                    timestamp: event.timestamp,
+                    source: event.source,
+                });
+
+                break;
+            }
+            
             case EventType.INPUT_REQUIRED:
                 store.setPendingInput(event.payload as InputRequiredPayload);
                 break;

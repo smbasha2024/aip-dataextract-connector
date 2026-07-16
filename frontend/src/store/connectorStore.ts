@@ -2,10 +2,11 @@ import { create } from "zustand";
 
 import type { Job } from "../types/job";
 import type { ConnectorEvent } from "../types/event";
-
+import type { LogEntry } from "../types/log";
 import type {
     StatusPayload,
     HeartbeatPayload,
+    DownloadEntry,
     DownloadPayload,
     LogPayload,
     InputRequiredPayload,
@@ -16,19 +17,20 @@ interface ConnectorStore {
     status: StatusPayload | null;
     heartbeat: HeartbeatPayload | null;
     jobs: Record<number, Job>;
-    logs: LogPayload[];
-    downloads: DownloadPayload[];
+    logs: LogEntry[];
+    downloads: DownloadEntry[];
     pendingInput: InputRequiredPayload | null;
     heartbeatReceivedAt: Date | null;
     timeline: ConnectorEvent[];
+    selectedJobId: string | null;
 
     addTimelineEvent(event: ConnectorEvent): void;
     setConnected(value: boolean): void;
     setStatus(status: StatusPayload): void;
     setHeartbeat(data: HeartbeatPayload): void;
     upsertJob(job: Job): void;
-    addLog(log: LogPayload): void;
-    addDownload(download: DownloadPayload): void;
+    addLog(log: LogEntry): void;
+    addDownload(download: DownloadEntry): void;
     setPendingInput(
         input: InputRequiredPayload | null
     ): void;
@@ -37,6 +39,7 @@ interface ConnectorStore {
         progress: number,
         step?: string,
     ): void;
+    setSelectedJob(jobId: string | null): void;
 }
 
 export const useConnectorStore =
@@ -50,6 +53,7 @@ create<ConnectorStore>((set) => ({
     pendingInput: null,
     heartbeatReceivedAt: null,
     timeline: [],
+    selectedJobId: null,
 
     setConnected: (value) =>
         set({
@@ -105,9 +109,9 @@ create<ConnectorStore>((set) => ({
         step,
     ) =>
         set((state) => {
-            const existing = state.jobs[task_id];
+            const job = state.jobs[task_id];
 
-            if (!existing) {
+            if (!job) {
                 return state;
             }
 
@@ -115,9 +119,10 @@ create<ConnectorStore>((set) => ({
                 jobs: {
                     ...state.jobs,
                     [task_id]: {
-                        ...existing,
+                        ...job,
                         progress,
                         step,
+                        last_update: new Date().toISOString(),
                     },
                 },
             };
@@ -137,4 +142,37 @@ create<ConnectorStore>((set) => ({
                 ].slice(0, 500),
             };
         }),
+    
+    setSelectedJob: (jobId) =>
+        set({
+            selectedJobId: jobId,
+        }),
 }));
+
+
+export function getDashboardStats(
+    jobs: Record<number, Job>
+) {
+    const list = Object.values(jobs);
+
+    const completed = list.filter(j => j.status === "completed").length;
+    const failed = list.filter(j => j.status === "failed").length;
+    const running = list.filter(j => j.status === "running").length;
+    const queued = list.filter(j => j.status === "queued").length;
+
+    const total = list.length;
+
+    const successRate =
+        total === 0
+            ? 0
+            : Math.round((completed / total) * 100);
+
+    return {
+        total,
+        completed,
+        failed,
+        running,
+        queued,
+        successRate,
+    };
+}

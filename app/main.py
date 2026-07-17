@@ -6,6 +6,7 @@ from app.websocket.websocket_client import (websocket_client)
 from app.workers.worker import (Worker)
 from app.recovery import (recover)
 from app.config.settings import settings
+from app.events.websocket_manager import WS_MANAGER
 from app.events.broker import EVENT_BROKER
 
 import uvicorn
@@ -37,6 +38,10 @@ async def start_local_ui():
 
 async def main():
     create_database()   # Create tables if they don't exist
+
+     # Wire up event subscriptions
+    EVENT_BROKER.subscribe(WS_MANAGER.broadcast)
+    
     await EVENT_BROKER.status(ConnectorStatus.STARTING)
 
     await recover()

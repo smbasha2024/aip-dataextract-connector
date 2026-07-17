@@ -23,8 +23,9 @@ from app.events.event_payloads import (
     InputReceivedPayload,
 )
 
-logger = logging.getLogger(__name__)
+from app.events.websocket_manager import WS_MANAGER
 
+logger = logging.getLogger(__name__)
 class EventBroker:
     def __init__(self):
         self.queue = asyncio.Queue()
@@ -161,6 +162,7 @@ class EventBroker:
         )
 
     async def input_required(self, request_id, job_id, title, message, input_type, image=None,):
+        await WS_MANAGER.ensure_dashboard()
         await self.publish_event(
             event_type=EventType.INPUT_REQUIRED,
             source="input_service",
@@ -183,7 +185,12 @@ class EventBroker:
                 request_id=request_id,
             ),
         )
-    
+        """
+        await EVENT_BROKER.input_received(
+            request_id=request_id,
+            job_id=job_id,
+        )
+        """
     async def download_ready(self, task, filename, path,):
         await self.publish_event(
             event_type=EventType.DOWNLOAD_READY,

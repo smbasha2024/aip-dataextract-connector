@@ -7,8 +7,10 @@ import Logs from "./components/Logs";
 import InputDialog from "./components/InputDialog";
 import DashboardStats from "./components/DashboardStats";
 import Footer from "./components/Footer";
+import { useConnectorStore } from "../../store/connectorStore";
 
 export default function Dashboard() {
+    const pendingInput = useConnectorStore((s) => s.pendingInput);
     return (
         <div className="min-h-screen bg-slate-100">
 
@@ -17,7 +19,7 @@ export default function Dashboard() {
                 <Header />
 
                   {/* Input Dialog */}
-                <InputDialog />
+                <InputDialog key={pendingInput?.request_id ?? "none"} />
 
                 {/* Status Cards */}
                 <StatusCards />

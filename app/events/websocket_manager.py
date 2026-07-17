@@ -1,7 +1,8 @@
 from fastapi import WebSocket
-
-from app.events.broker import EVENT_BROKER
 from app.events.event import Event
+
+import webbrowser
+import asyncio
 
 import logging
 
@@ -9,12 +10,18 @@ logger = logging.getLogger(__name__)
 
 class WebSocketManager:
     def __init__(self):
+        #from app.events.broker import EVENT_BROKER
         self.connections = set()
+        self.dashboard_url = "http://localhost:5050"
 
+        async def broadcast(self, event):
+            ...
+
+        """
         EVENT_BROKER.subscribe(
             self.broadcast
         )
-
+        """
     async def connect(self, websocket: WebSocket,):
         await websocket.accept()
 
@@ -51,5 +58,27 @@ class WebSocketManager:
 
         for conn in disconnected:
             self.disconnect(conn)
+
+    @property
+    def connected(self) -> bool:
+        return len(self.connections) > 0
+
+    async def ensure_dashboard(self):
+        """
+        Opens the dashboard browser only if
+        there are no connected dashboards.
+        """
+
+        if self.connected:
+            return
+
+        logger.info("No dashboard connected. Launching browser...")
+
+        webbrowser.open(self.dashboard_url)
+        # Give the browser a few seconds to load
+        for _ in range(20):          # wait up to 10 seconds
+            if self.connected:
+                return
+            await asyncio.sleep(0.5)
 
 WS_MANAGER = WebSocketManager()

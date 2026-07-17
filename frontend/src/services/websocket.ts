@@ -30,6 +30,11 @@ class ConnectorWebSocket {
         this.socket.onopen = () => {
             console.log("Dashboard connected.");
             store.setConnected(true);
+            this.socket?.send(
+                JSON.stringify({
+                    type: "dashboard_connected",
+                })
+            );
         };
 
         this.socket.onmessage = (message) => {
@@ -188,9 +193,12 @@ class ConnectorWebSocket {
                 break;
             }
             
-            case EventType.INPUT_REQUIRED:
-                store.setPendingInput(event.payload as InputRequiredPayload);
+            case EventType.INPUT_REQUIRED:{
+                const payload = event.payload as InputRequiredPayload;
+                store.setPendingInput(payload);
+                showInputNotification(payload);
                 break;
+            }
 
             case EventType.INPUT_RECEIVED:
                 store.setPendingInput(null);
@@ -200,6 +208,35 @@ class ConnectorWebSocket {
                 console.log(event);
         }
     }
+}
+
+function showInputNotification(input: InputRequiredPayload) {
+    if (!("Notification" in window)) {
+        return;
+    }
+
+    if (Notification.permission !== "granted") {
+        return;
+    }
+
+    // Don't show if user is already looking at dashboard
+    if (document.visibilityState === "visible") {
+        return;
+    }
+
+    const notification = new Notification(
+        "AIProxys Connector",
+        {
+            body: input.title,
+            icon: "/favicon.ico",
+        }
+    );
+
+    notification.onclick = () => {
+        window.focus();
+        notification.close();
+    };
+
 }
 
 export const connectorWebSocket =

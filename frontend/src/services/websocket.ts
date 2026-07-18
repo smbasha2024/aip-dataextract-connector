@@ -1,7 +1,8 @@
 import { useConnectorStore } from "../store/connectorStore";
-
+import axios from "axios";
 import { EventType } from "../types/events";
 import type { ConnectorEvent } from "../types/event";
+import { CONFIG } from "../config/config";
 
 import type {
     StatusPayload,
@@ -23,18 +24,21 @@ class ConnectorWebSocket {
             return;
         }
 
-        this.socket = new WebSocket("ws://localhost:5050/ws");
+        //this.socket = new WebSocket("ws://localhost:5050/ws");
+        this.socket = new WebSocket(CONFIG.wsUrl);
 
         const store = useConnectorStore.getState();
 
         this.socket.onopen = () => {
             console.log("Dashboard connected.");
             store.setConnected(true);
-            this.socket?.send(
-                JSON.stringify({
-                    type: "dashboard_connected",
-                })
-            );
+            this.recoverPendingInput();
+        
+            //this.socket?.send(
+            //    JSON.stringify({
+            //        type: "dashboard_connected",
+            //    })
+            //);
         };
 
         this.socket.onmessage = (message) => {
@@ -60,10 +64,33 @@ class ConnectorWebSocket {
             console.error("WebSocket Error", err);
         };
 
-        this.socket.onmessage = (message) => {
-            const event: ConnectorEvent<unknown> = JSON.parse(message.data);
-            this.handleEvent(event);
-        };
+        //this.socket.onmessage = (message) => {
+        //    const event: ConnectorEvent<unknown> = JSON.parse(message.data);
+        //    this.handleEvent(event);
+        //};
+    }
+
+    private async recoverPendingInput() {
+        try {
+            const response = await axios.get(
+                `${CONFIG.apiUrl}/api/input/pending`,
+            );
+
+            if (response.data.pending) {
+                useConnectorStore
+                    .getState()
+                    .setPendingInput(
+                        response.data.request
+                    );
+            }
+
+        }
+        catch (err) {
+            console.error(
+                "Failed to recover pending input",
+                err
+            );
+        }
     }
 
     private handleEvent(event: ConnectorEvent,) {
@@ -196,6 +223,7 @@ class ConnectorWebSocket {
             case EventType.INPUT_REQUIRED:{
                 const payload = event.payload as InputRequiredPayload;
                 store.setPendingInput(payload);
+                //showNotification("AIProxys Connector", "User input is required.");
                 showInputNotification(payload);
                 break;
             }
@@ -211,18 +239,28 @@ class ConnectorWebSocket {
 }
 
 function showInputNotification(input: InputRequiredPayload) {
+    //console.log("showInputNotification called");
+    //console.log("Notification supported:", "Notification" in window);
+    //console.log("Permission:", Notification.permission);
+    //console.log("Visibility:", document.visibilityState);
+
     if (!("Notification" in window)) {
+        console.log("Notification API not supported");
         return;
     }
 
     if (Notification.permission !== "granted") {
+        console.log("Permission not granted");
         return;
     }
 
     // Don't show if user is already looking at dashboard
     if (document.visibilityState === "visible") {
+        console.log("Dashboard already visible");
         return;
     }
+
+    //console.log("Creating notification...");
 
     const notification = new Notification(
         "AIProxys Connector",
@@ -232,10 +270,26 @@ function showInputNotification(input: InputRequiredPayload) {
         }
     );
 
+    const audio = new Audio("/sounds/notification.mp3");
+    //console.log(audio.src);
+    audio.play()
+        .then(() => {
+            console.log("Audio started");
+        })
+        .catch((err) => {
+            console.error("Audio failed:", err);
+        });
+
     notification.onclick = () => {
         window.focus();
         notification.close();
     };
+
+    // Auto-close after 15 seconds
+    /*
+    setTimeout(() => {
+        notification.close();
+    }, 15000); */
 
 }
 

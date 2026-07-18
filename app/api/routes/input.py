@@ -31,3 +31,17 @@ async def respond(
     return InputResponseResult(
         success=True,
     )
+
+@router.get("/pending")
+async def pending():
+    req = INPUT_SERVICE.get_request()
+
+    if req is None:
+        return {
+            "pending": False
+        }
+
+    return {
+        "pending": True,
+        "request": req,
+    }

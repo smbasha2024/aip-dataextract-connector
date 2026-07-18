@@ -2,6 +2,7 @@ import { useConnectorStore } from "../../../store/connectorStore";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useRef } from "react";
+import { CONFIG } from "../../../config/config"
 
 export default function InputDialog() {
     const input = useConnectorStore((s) => s.pendingInput);
@@ -32,7 +33,7 @@ export default function InputDialog() {
 
         try {
             await axios.post(
-                "http://localhost:5050/api/input/respond",
+                 `${CONFIG.apiUrl}/api/input/respond`,
                 {
                     request_id: input.request_id,
                     value,

@@ -13,6 +13,7 @@ class WebSocketManager:
         #from app.events.broker import EVENT_BROKER
         self.connections = set()
         self.dashboard_url = "http://localhost:5050"
+        self.launching = False
 
         async def broadcast(self, event):
             ...
@@ -62,6 +63,10 @@ class WebSocketManager:
     @property
     def connected(self) -> bool:
         return len(self.connections) > 0
+    
+    @property
+    def connection_count(self) -> int:
+        return len(self.connections)
 
     async def ensure_dashboard(self):
         """
@@ -71,14 +76,29 @@ class WebSocketManager:
 
         if self.connected:
             return
+        
+        if self.launching:
+            return
 
-        logger.info("No dashboard connected. Launching browser...")
+        self.launching = True
 
-        webbrowser.open(self.dashboard_url)
-        # Give the browser a few seconds to load
-        for _ in range(20):          # wait up to 10 seconds
-            if self.connected:
-                return
-            await asyncio.sleep(0.5)
+        try:
+            logger.info("No dashboard connected. Launching browser...")
+
+            webbrowser.open(self.dashboard_url)
+
+            # Give the browser a few seconds to load
+            timeout = 10
+            for _ in range(timeout * 2):          # wait up to 10 seconds
+                if self.connected:
+                    return
+                await asyncio.sleep(0.5)
+
+        except Exception:
+            logger.exception(
+                "Failed to launch dashboard browser."
+            )
+        finally:
+            self.launching = False
 
 WS_MANAGER = WebSocketManager()

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useConnectorStore } from "../../../store/connectorStore";
+import { CONFIG } from "../../../config/config"
 
 export default function Header() {
 
@@ -39,11 +40,11 @@ export default function Header() {
                 <div>
 
                     <h1 className="text-4xl font-bold text-blue-700">
-                        AIProxys Connector Dashboard
+                        {CONFIG.appName}
                     </h1>
 
                     <p className="text-slate-500 mt-2">
-                        Local Connector Monitoring Console
+                        {CONFIG.caption}
                     </p>
 
                 </div>
@@ -70,19 +71,13 @@ export default function Header() {
 
                     <div className="text-sm text-slate-500">
 
-                        Version 1.0.0
+                        Version {CONFIG.version}
 
                     </div>
 
                     <div className="font-semibold">
 
-                        {time.toLocaleDateString()}
-
-                    </div>
-
-                    <div className="font-semibold">
-
-                        {time.toLocaleTimeString()}
+                        {time.toLocaleDateString()} {time.toLocaleTimeString()}
 
                     </div>
 

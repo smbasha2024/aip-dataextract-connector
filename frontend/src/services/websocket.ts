@@ -3,6 +3,7 @@ import axios from "axios";
 import { EventType } from "../types/events";
 import type { ConnectorEvent } from "../types/event";
 import { CONFIG } from "../config/config";
+import { NotificationService } from "./notificationService";
 
 import type {
     StatusPayload,
@@ -98,9 +99,16 @@ class ConnectorWebSocket {
         store.addTimelineEvent(event);
         
         switch (event.type) {
-            case EventType.STATUS:
+            case EventType.STATUS:{
+                const payload = event.payload as StatusPayload;
                 store.setStatus(event.payload as StatusPayload);
+                            if (payload.status === "CONNECTED") {
+                    NotificationService.notifyCloudConnected();
+                } else {
+                    NotificationService.notifyCloudDisconnected();
+                }
                 break;
+            }
 
             case EventType.HEARTBEAT:
                 store.setHeartbeat(event.payload as HeartbeatPayload);
@@ -166,7 +174,7 @@ class ConnectorWebSocket {
                     step: "Completed",
                     completed_at: new Date().toISOString(),
                 });
-
+                NotificationService.notifyJobCompleted(event.job_id!);
                 break;
             }
             
@@ -182,7 +190,7 @@ class ConnectorWebSocket {
                     step: "Failed",
                     completed_at: new Date().toISOString(),
                 });
-
+                NotificationService.notifyJobFailed(event.job_id!);
                 break;
             }
 
@@ -216,7 +224,7 @@ class ConnectorWebSocket {
                     timestamp: event.timestamp,
                     source: event.source,
                 });
-
+                NotificationService.notifyDownloadReady(payload.filename);
                 break;
             }
             
@@ -224,7 +232,8 @@ class ConnectorWebSocket {
                 const payload = event.payload as InputRequiredPayload;
                 store.setPendingInput(payload);
                 //showNotification("AIProxys Connector", "User input is required.");
-                showInputNotification(payload);
+                //showInputNotification(payload);
+                NotificationService.notifyInputRequired(payload.title);
                 break;
             }
 
@@ -236,61 +245,6 @@ class ConnectorWebSocket {
                 console.log(event);
         }
     }
-}
-
-function showInputNotification(input: InputRequiredPayload) {
-    //console.log("showInputNotification called");
-    //console.log("Notification supported:", "Notification" in window);
-    //console.log("Permission:", Notification.permission);
-    //console.log("Visibility:", document.visibilityState);
-
-    if (!("Notification" in window)) {
-        console.log("Notification API not supported");
-        return;
-    }
-
-    if (Notification.permission !== "granted") {
-        console.log("Permission not granted");
-        return;
-    }
-
-    // Don't show if user is already looking at dashboard
-    if (document.visibilityState === "visible") {
-        console.log("Dashboard already visible");
-        return;
-    }
-
-    //console.log("Creating notification...");
-
-    const notification = new Notification(
-        "AIProxys Connector",
-        {
-            body: input.title,
-            icon: "/favicon.ico",
-        }
-    );
-
-    const audio = new Audio("/sounds/notification.mp3");
-    //console.log(audio.src);
-    audio.play()
-        .then(() => {
-            console.log("Audio started");
-        })
-        .catch((err) => {
-            console.error("Audio failed:", err);
-        });
-
-    notification.onclick = () => {
-        window.focus();
-        notification.close();
-    };
-
-    // Auto-close after 15 seconds
-    /*
-    setTimeout(() => {
-        notification.close();
-    }, 15000); */
-
 }
 
 export const connectorWebSocket =

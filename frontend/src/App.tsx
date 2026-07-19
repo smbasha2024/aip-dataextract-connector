@@ -1,17 +1,52 @@
 import { useEffect } from "react";
 import DashboardPage from "./features/dashboard/Dashboard";
 import { connectorWebSocket } from "./services/websocket";
+import {ensureSingleDashboard, notifyExistingDashboard,} from "./services/dashboardInstance";
+import { useState } from "react";
+import DuplicateDashboard from "./features/dashboard/components/common/DuplicateDashboard";
 
 export default function App() {
+    const [duplicateDashboard, setDuplicateDashboard] = useState(false);
+
     useEffect(() => {
-        connectorWebSocket.connect();
-        
-        if ("Notification" in window) {
-            if (Notification.permission === "default") {
-                Notification.requestPermission();
+        async function initialize() {
+            const first = await ensureSingleDashboard();
+
+            console.log("Primary dashboard:", first);
+
+            if (!first) {
+                notifyExistingDashboard();
+                setDuplicateDashboard(true);
+
+                setTimeout(() => {
+                    window.close();
+                }, 1000);
+
+                return;
+            }
+
+            connectorWebSocket.connect();
+
+            if ("Notification" in window) {
+                if (Notification.permission === "default") {
+                    Notification.requestPermission();
+                }
             }
         }
+
+        initialize();
+        //return () => {
+        //    connectorWebSocket.disconnect?.();
+        //};
+        
     }, []);
 
+   if (duplicateDashboard) {
+        return (
+            <DuplicateDashboard
+                onClose={() => window.close()}
+            />
+        );
+    }
     return <DashboardPage />;
 }

@@ -2,6 +2,8 @@ from fastapi import WebSocket
 from app.events.event import Event
 from app.runtime.connector_metrics import METRICS
 from app.config.settings import settings
+# For Last connected and disconnected attributes
+from datetime import datetime, timezone
 
 import webbrowser
 import asyncio
@@ -16,6 +18,8 @@ class WebSocketManager:
         self.connections = set()
         self.dashboard_url = settings.dashboard_url 
         self.launching = False
+        self.last_connected = None
+        self.last_disconnected = None
 
         async def broadcast(self, event):
             ...
@@ -29,6 +33,7 @@ class WebSocketManager:
         await websocket.accept()
 
         self.connections.add(websocket)
+        self.last_connected = datetime.now(timezone.utc)
         logger.info(
             "Dashboard connected (%d connections)",
             len(self.connections),
@@ -36,17 +41,17 @@ class WebSocketManager:
 
     def disconnect(self, websocket: WebSocket,):
         self.connections.discard(websocket)
+        self.last_disconnected = datetime.now(timezone.utc)
         logger.info(
             "Dashboard disconnected (%d connections)",
             len(self.connections),
         )
-
+    
     async def broadcast(self, event: Event,):
         if not self.connections:
             return
         
         disconnected = []
-
         message = event.to_dict()
 
         for conn in self.connections:

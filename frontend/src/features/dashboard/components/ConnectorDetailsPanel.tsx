@@ -117,10 +117,22 @@ export default function ConnectorDetailsPanel({
                                             : "Disconnected"
                                     }
                                 />
+                                
                                 <Row
                                     label="Reconnects"
                                     value={health.websocket_reconnects}
                                 />
+
+                                <Row
+                                    label="Last Connected"
+                                    value={health.last_dashboard_connected}
+                                />
+
+                                <Row
+                                    label="Last Disconnected"
+                                    value={health.last_dashboard_disconnected}
+                                />
+                                
                             </Section>
 
                             <Section title="Activity">

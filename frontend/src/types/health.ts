@@ -11,4 +11,6 @@ export interface HealthResponse {
     dashboard_launches: number;
     dashboard_connected: boolean;
     dashboard_connections: number;
+    last_dashboard_connected: string;
+    last_dashboard_disconnected: string;
 }

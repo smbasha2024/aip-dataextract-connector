@@ -44,6 +44,7 @@ async def websocket_client():
             ) as websocket:
 
                 logger.info("Connected to Cloud server")
+                METRICS.cloud_status = ConnectorStatus.CONNECTED
                 await EVENT_BROKER.status(ConnectorStatus.CONNECTED)
 
                 heartbeat_task = asyncio.create_task(send_heartbeat(websocket))
@@ -150,6 +151,7 @@ async def websocket_client():
             InvalidURI,
         ) as e:
             logger.warning(f"Connection lost with Cloud Server: {e}")
+            METRICS.cloud_status = ConnectorStatus.DISCONNECTED
             await EVENT_BROKER.status(ConnectorStatus.DISCONNECTED)
 
         except Exception:

@@ -3,7 +3,6 @@ from fastapi import APIRouter
 from app.runtime.connector_metrics import METRICS
 from app.events.websocket_manager import WS_MANAGER
 from app.config.settings import settings
-from app.events.broker import EVENT_BROKER
 
 router = APIRouter(
     prefix="/api/health",
@@ -15,7 +14,7 @@ router = APIRouter(
 async def health():
 
     return {
-        "status": EVENT_BROKER.status, 
+        "status": METRICS.cloud_status ,
         "version": settings.version,
         "uptime_seconds": METRICS.uptime_seconds,
         "jobs_received": METRICS.jobs_received,
@@ -27,4 +26,6 @@ async def health():
         "websocket_reconnects": METRICS.websocket_reconnects,
         "dashboard_connected": WS_MANAGER.connected,
         "dashboard_connections": WS_MANAGER.connection_count,
+        "last_dashboard_connected": WS_MANAGER.last_connected,
+        "last_dashboard_disconnected": WS_MANAGER.last_disconnected
     }

@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from app.events.connector_status import ConnectorStatus
 
 class ConnectorMetrics:
     def __init__(self):
@@ -12,6 +13,7 @@ class ConnectorMetrics:
         self.websocket_reconnects = 0
         self.dashboard_launches = 0
         self.notifications = 0
+        self.cloud_status = ConnectorStatus.DISCONNECTED
 
     @property
     def uptime_seconds(self):

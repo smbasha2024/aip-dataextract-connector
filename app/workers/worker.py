@@ -5,6 +5,7 @@ from app.database.repository import (get_task, update_status, mark_running, mark
 from app.services.result_service import (send_result)
 
 from app.events.broker import EVENT_BROKER
+from app.runtime.connector_metrics import METRICS
 
 import logging
 
@@ -62,6 +63,7 @@ class Worker:
             result = await agent.execute(task)
 
             mark_completed(task.id)
+            METRICS.jobs_completed += 1
             await EVENT_BROKER.job_completed(task, result)
             await EVENT_BROKER.worker_finished()
             await EVENT_BROKER.status(ConnectorStatus.IDLE)
@@ -88,6 +90,7 @@ class Worker:
             )
 
             mark_failed(task_id, str(ex))
+            METRICS.jobs_failed += 1
             await EVENT_BROKER.job_failed(task, ex)
             await EVENT_BROKER.worker_finished()
             await EVENT_BROKER.status(ConnectorStatus.IDLE)

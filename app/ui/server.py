@@ -4,6 +4,7 @@ from fastapi import Form
 
 from app.services.input_service import INPUT_SERVICE
 from app.api.routes.input import router as input_router
+from app.api.routes.health import router as health_router
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 
@@ -20,6 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(input_router)
+app.include_router(health_router)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket,):
@@ -31,20 +33,3 @@ async def websocket_endpoint(websocket: WebSocket,):
 
     except WebSocketDisconnect:
         WS_MANAGER.disconnect(websocket)
-
-"""
-@app.post("/submit")
-async def submit(
-    request_id: str = Form(...),
-    value: str = Form(...),
-):
-
-    ok = await INPUT_SERVICE.submit(
-        request_id,
-        value,
-    )
-
-    return {
-        "success": ok
-    }
-"""

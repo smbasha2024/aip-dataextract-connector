@@ -17,6 +17,7 @@ from app.events.broker import EVENT_BROKER
 from app.events.connector_status import ConnectorStatus
 from app.events.log_level import LogLevel
 from app.services.heartbeat_service import send_heartbeat
+from app.runtime.connector_metrics import METRICS
 
 import logging
 
@@ -94,6 +95,8 @@ async def websocket_client():
                             )
                             continue
 
+                        METRICS.jobs_received += 1
+                    
                         logger.info("Task received from cloud server is stored successfully. job_id=%s task_id=%s agent=%s", saved_task.job_id, saved_task.id, saved_task.agent_name,)
 
                         await EVENT_BROKER.job_received(saved_task)
@@ -163,4 +166,5 @@ async def websocket_client():
                 heartbeat_task = None
         
         logger.info(f"Reconnecting to Cloud Server in {RECONNECT_DELAY} seconds...")
+        METRICS.websocket_reconnects += 1
         await asyncio.sleep(RECONNECT_DELAY)

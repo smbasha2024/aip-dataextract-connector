@@ -1,5 +1,7 @@
 from fastapi import WebSocket
 from app.events.event import Event
+from app.runtime.connector_metrics import METRICS
+from app.config.settings import settings
 
 import webbrowser
 import asyncio
@@ -12,7 +14,7 @@ class WebSocketManager:
     def __init__(self):
         #from app.events.broker import EVENT_BROKER
         self.connections = set()
-        self.dashboard_url = "http://localhost:5050"
+        self.dashboard_url = settings.dashboard_url 
         self.launching = False
 
         async def broadcast(self, event):
@@ -86,6 +88,7 @@ class WebSocketManager:
             logger.info("No dashboard connected. Launching browser...")
 
             webbrowser.open(self.dashboard_url)
+            METRICS.dashboard_launches += 1
 
             # Give the browser a few seconds to load
             timeout = 10

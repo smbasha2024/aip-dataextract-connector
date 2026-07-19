@@ -1,4 +1,5 @@
 import { useConnectorStore } from "../../../store/connectorStore";
+import { CONFIG } from "../../../config/config";
 
 export default function Footer() {
 
@@ -32,7 +33,7 @@ export default function Footer() {
 
                             <span className="h-2 w-2 rounded-full bg-green-500"></span>
 
-                            Connected to ws://localhost:5050/ws
+                            Connected to {CONFIG.wsUrl}
 
                         </span>
 

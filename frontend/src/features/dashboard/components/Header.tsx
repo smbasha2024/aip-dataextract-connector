@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useConnectorStore } from "../../../store/connectorStore";
 import { CONFIG } from "../../../config/config"
+import { HeartPulse } from "lucide-react";
+import ConnectorDetailsPanel from "./ConnectorDetailsPanel";
 
 export default function Header() {
 
@@ -16,11 +18,10 @@ export default function Header() {
     );
 
     const [time, setTime] = useState(new Date());
+    const [showDetails, setShowDetails] = useState(false);
 
     useEffect(() => {
-
         const id = setInterval(() => {
-
             setTime(new Date());
 
         }, 1000);
@@ -43,9 +44,40 @@ export default function Header() {
                         {CONFIG.appName}
                     </h1>
 
-                    <p className="text-slate-500 mt-2">
-                        {CONFIG.caption}
-                    </p>
+                    <div className="mt-2 flex items-center gap-4">
+                        <p className="text-slate-500">
+                            {CONFIG.caption}
+                        </p>
+
+                        <button
+                            onClick={() => setShowDetails(true)}
+                            className="
+                                inline-flex
+                                items-center
+                                gap-2
+                                rounded-full
+                                border
+                                border-red-200
+                                bg-red-50
+                                px-3
+                                py-1
+                                text-sm
+                                text-red-600
+                                hover:bg-red-100
+                                transition
+                            "
+                            title="Connector Details"
+                        >
+                            <HeartPulse size={16} />
+
+                            Health
+
+                        </button>
+                        <ConnectorDetailsPanel
+                            open={showDetails}
+                            onClose={() => setShowDetails(false)}
+                        />
+                    </div>
 
                 </div>
 
@@ -121,5 +153,4 @@ export default function Header() {
         </div>
 
     );
-
 }

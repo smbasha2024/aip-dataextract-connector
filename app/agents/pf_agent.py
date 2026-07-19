@@ -51,13 +51,9 @@ class PFAgent(BaseAgent):
                 ########################################################
                 # automation logic
                 await self.progress(task, step="Opening Login Page", progress=20,)
-
                 await self.progress(task, step="Logging In", progress=35,)
-                
                 await self.progress(task, step="Searching Member", progress=60,)
-
                 await self.progress(task, step="Downloading PDF", progress=90,)
-
                 await self.progress(task, step="Completed", progress=100,)
 
                 Path("/app/data/sample.pdf").write_text("Testing")

@@ -2,6 +2,7 @@ import asyncio
 import uuid
 
 from app.events.broker import EVENT_BROKER
+from app.runtime.connector_metrics import METRICS
 
 class InputService:
 
@@ -20,7 +21,7 @@ class InputService:
             "type": input_type,
             "image": image,
         }
-
+        METRICS.pending_inputs += 1
         await EVENT_BROKER.input_required(
             request_id=request_id,
             job_id=job_id,
@@ -38,6 +39,7 @@ class InputService:
                 request_id,
                 None,
             )
+            #METRICS.pending_inputs -= 1
 
     def get_request(self):
         if not self.pending:
@@ -61,6 +63,7 @@ class InputService:
         if item is None:
             return False
 
+        METRICS.pending_inputs += 1
         await EVENT_BROKER.input_received(
             request_id=request_id,
             job_id=item["job_id"],

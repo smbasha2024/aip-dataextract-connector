@@ -26,34 +26,7 @@ from app.database.repository import (
 from app.services.result_service import (
     send_result
 )
-"""
-SEMAPHORE = asyncio.Semaphore(3)
 
-async def execute_task(task):
-    async with SEMAPHORE:
-
-        try:
-            mark_running(task.id)
-
-            agent_class = AGENTS[task.agent_name]
-            agent = agent_class()
-            payload = json.loads(task.payload)
-            logger.info(f"Agent {agent_class} Invoked.")
-            result = await agent.execute(payload)
-            logger.info(f"Agent {agent_class} Payload {payload} Result {result}.")
-            mark_completed(task.id)
-
-            await send_result(
-                {
-                    "job_id": task.job_id,
-                    "status": "completed",
-                    "output": result
-                }
-            )
-
-        except Exception as ex:
-            mark_failed(task.id, str(ex))
-"""
 class Orchestrator:
     async def run(self):
         while True:

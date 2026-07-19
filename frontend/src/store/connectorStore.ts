@@ -7,8 +7,6 @@ import type {
     StatusPayload,
     HeartbeatPayload,
     DownloadEntry,
-    DownloadPayload,
-    LogPayload,
     InputRequiredPayload,
 } from "../types/payloads";
 

@@ -1,6 +1,4 @@
-import { Download } from "lucide-react";
 import { useConnectorStore } from "../../../store/connectorStore";
-import type { DownloadEntry } from "../../../types/payloads";
 import { FileDown } from "lucide-react";
 
 export default function DownloadsPanel() {

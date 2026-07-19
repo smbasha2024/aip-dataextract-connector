@@ -1,7 +1,8 @@
 import { CONFIG } from "../config/config";
+const recentNotifications = new Map<string, number>();
+const DEDUP_WINDOW_MS = 5000;
 
 function canNotify(): boolean {
-
     if (!("Notification" in window)) {
         console.log("Notification API not supported");
         return false;
@@ -21,7 +22,6 @@ function canNotify(): boolean {
 }
 
 function playSound() {
-
     const audio = new Audio("/sounds/notification.mp3");
 
     audio.play()
@@ -42,6 +42,27 @@ function showBrowserNotification(
 
     if (!canNotify()) {
         return;
+    }
+
+    const key = JSON.stringify({title, body,});
+    const now = Date.now();
+    const lastShown = recentNotifications.get(key);
+
+    if (
+        lastShown &&
+        now - lastShown < DEDUP_WINDOW_MS
+    ) {
+        console.log("Duplicate notification suppressed:", key);
+        return;
+    }
+
+    recentNotifications.set(key, now);
+
+    // Cleanup old entries
+    for (const [cacheKey, timestamp] of recentNotifications) {
+        if (now - timestamp > DEDUP_WINDOW_MS) {
+            recentNotifications.delete(cacheKey);
+        }
     }
 
     const notification = new Notification(

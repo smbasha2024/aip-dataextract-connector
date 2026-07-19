@@ -17,28 +17,21 @@ export default function App() {
             if (!first) {
                 notifyExistingDashboard();
                 setDuplicateDashboard(true);
-
-                setTimeout(() => {
-                    window.close();
-                }, 1000);
-
                 return;
             }
 
             connectorWebSocket.connect();
 
-            if ("Notification" in window) {
-                if (Notification.permission === "default") {
-                    Notification.requestPermission();
-                }
+            if (
+                "Notification" in window &&
+                Notification.permission === "default"
+            ) {
+                Notification.requestPermission();
             }
         }
 
         initialize();
-        //return () => {
-        //    connectorWebSocket.disconnect?.();
-        //};
-        
+
     }, []);
 
    if (duplicateDashboard) {

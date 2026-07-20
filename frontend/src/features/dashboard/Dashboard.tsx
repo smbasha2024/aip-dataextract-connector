@@ -9,6 +9,7 @@ import DashboardStats from "./components/DashboardStats";
 import Footer from "./components/Footer";
 import { useConnectorStore } from "../../store/connectorStore";
 import RecoveryToast from "./components/common/RecoveryToast"
+import ConnectionBanner from "./components/common/ConnectionBanner"
 
 export default function Dashboard() {
     const pendingInput = useConnectorStore((s) => s.pendingInput);
@@ -17,10 +18,15 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-slate-100">
-
             <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
                 {/* Header */}
                 <Header />
+
+                {/* Dashboard Alerts */}
+                <div className="space-y-2">
+                    <ConnectionBanner />
+                    {/* Future banners go here */}
+                </div>
 
                   {/* Input Dialog */}
                 <InputDialog key={pendingInput?.request_id ?? "none"} />

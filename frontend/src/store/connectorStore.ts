@@ -23,6 +23,7 @@ interface ConnectorStore {
     timeline: ConnectorEvent[];
     selectedJobId: string | null;
     recoveryMessage: string | null;
+    connectedSince: Date | null;
 
     addTimelineEvent(event: ConnectorEvent): void;
     setConnected(value: boolean): void;
@@ -56,11 +57,16 @@ create<ConnectorStore>((set) => ({
     timeline: [],
     selectedJobId: null,
     recoveryMessage: null,
+    connectedSince: null,
 
     setConnected: (value) =>
-        set({
+        set(state => ({
             connected: value,
-        }),
+            connectedSince:
+                value
+                    ? state.connectedSince ?? new Date()
+                    : null,
+        })),
 
     setStatus: (status) =>
         set({

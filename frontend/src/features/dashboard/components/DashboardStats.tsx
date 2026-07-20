@@ -1,14 +1,11 @@
 import { useConnectorStore, getDashboardStats } from "../../../store/connectorStore";
 
 export default function DashboardStats() {
-
     const jobs = useConnectorStore(s => s.jobs);
-
     const stats = getDashboardStats(jobs);
 
     return (
         <div className="grid grid-cols-6 gap-4">
-
             <StatCard
                 title="Jobs"
                 value={stats.total}
@@ -43,7 +40,6 @@ export default function DashboardStats() {
                 value={`${stats.successRate}%`}
                 color="text-green-700"
             />
-
         </div>
     );
 }
@@ -68,7 +64,6 @@ function StatCard({
     return (
 
         <div className="rounded-xl border bg-white shadow-sm p-4">
-
             <div className="text-xs uppercase tracking-wide text-slate-500">
                 {title}
             </div>

@@ -1,0 +1,17 @@
+{
+  "name": "aip-dataextract-connector-desktop",
+  "version": "0.1.0",
+  "description": "AIProxys Connector Desktop",
+  "main": "main.js",
+  "scripts": {
+    "electron": "electron ."
+  },
+  "author": "Basha",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^10.0.3",
+    "electron": "^43.1.1",
+    "electron-is-dev": "^3.0.1",
+    "wait-on": "^9.0.10"
+  }
+}

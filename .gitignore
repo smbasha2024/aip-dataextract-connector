@@ -5,3 +5,8 @@ env/
 
 __pycache__/
 __init__.py
+
+# ==========================
+# Electron
+# ==========================
+desktop/node_modules/

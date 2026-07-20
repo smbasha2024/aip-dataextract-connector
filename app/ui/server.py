@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Form
 
 from app.services.input_service import INPUT_SERVICE
-from app.api.routes.input import router as input_router
-from app.api.routes.health import router as health_router
+from app.api.routes.input import input_router
+from app.api.routes.health import health_router
+from app.api.routes.tasks import tasks_router
+
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 
@@ -23,6 +25,7 @@ app.add_middleware(
 )
 app.include_router(input_router)
 app.include_router(health_router)
+app.include_router(tasks_router)
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket,):

@@ -8,9 +8,13 @@ import InputDialog from "./components/InputDialog";
 import DashboardStats from "./components/DashboardStats";
 import Footer from "./components/Footer";
 import { useConnectorStore } from "../../store/connectorStore";
+import RecoveryToast from "./components/common/RecoveryToast"
 
 export default function Dashboard() {
     const pendingInput = useConnectorStore((s) => s.pendingInput);
+    const recoveryMessage = useConnectorStore(s => s.recoveryMessage);
+    const setRecoveryMessage = useConnectorStore(s => s.setRecoveryMessage);
+
     return (
         <div className="min-h-screen bg-slate-100">
 
@@ -117,6 +121,14 @@ export default function Dashboard() {
                 <Footer />
             </div>
 
+            {recoveryMessage && (
+                <RecoveryToast
+                    message={recoveryMessage}
+                    onClose={() =>
+                        setRecoveryMessage(null)
+                    }
+                />
+            )}
         </div>
     );
 }

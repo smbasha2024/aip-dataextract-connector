@@ -161,8 +161,10 @@ def reset_unfinished_tasks():
             .filter(
                 Task.status.in_(
                     [
+                        "RECEIVED",
                         "RUNNING",
-                        "QUEUED"
+                        "QUEUED",
+                        "FAILED"
                     ]
                 )
             )

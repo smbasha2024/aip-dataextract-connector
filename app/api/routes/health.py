@@ -4,13 +4,13 @@ from app.runtime.connector_metrics import METRICS
 from app.events.websocket_manager import WS_MANAGER
 from app.config.settings import settings
 
-router = APIRouter(
+health_router = APIRouter(
     prefix="/api/health",
     tags=["Health"],
 )
 
 
-@router.get("")
+@health_router.get("")
 async def health():
 
     return {

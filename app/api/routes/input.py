@@ -5,12 +5,12 @@ from app.api.models.input_models import (
     InputResponseResult,
 )
 
-router = APIRouter(
+input_router = APIRouter(
     prefix="/api/input",
     tags=["Input"],
 )
 
-@router.post(
+@input_router.post(
     "/respond",
     response_model=InputResponseResult,
 )
@@ -32,7 +32,7 @@ async def respond(
         success=True,
     )
 
-@router.get("/pending")
+@input_router.get("/pending")
 async def pending():
     req = INPUT_SERVICE.get_request()
 

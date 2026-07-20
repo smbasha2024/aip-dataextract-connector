@@ -3,6 +3,7 @@ import { create } from "zustand";
 import type { Job } from "../types/job";
 import type { ConnectorEvent } from "../types/event";
 import type { LogEntry } from "../types/log";
+import type { TaskResponse } from "../types/task";
 import type {
     StatusPayload,
     HeartbeatPayload,
@@ -21,6 +22,7 @@ interface ConnectorStore {
     heartbeatReceivedAt: Date | null;
     timeline: ConnectorEvent[];
     selectedJobId: string | null;
+    recoveryMessage: string | null;
 
     addTimelineEvent(event: ConnectorEvent): void;
     setConnected(value: boolean): void;
@@ -29,15 +31,16 @@ interface ConnectorStore {
     upsertJob(job: Job): void;
     addLog(log: LogEntry): void;
     addDownload(download: DownloadEntry): void;
-    setPendingInput(
-        input: InputRequiredPayload | null
-    ): void;
-    updateJobProgress(
-        task_id: number,
-        progress: number,
-        step?: string,
-    ): void;
+    setPendingInput(input: InputRequiredPayload | null): void;
+    updateJobProgress(task_id: number, progress: number, step?: string,): void;
     setSelectedJob(jobId: string | null): void;
+
+    restoreDashboardState: () => void;
+    restoreTasks(tasks: TaskResponse[]): void;
+    restorePendingInput(input: InputRequiredPayload | null): void;
+    restoreStatus(status: StatusPayload): void;
+
+    setRecoveryMessage(message: string | null): void;
 }
 
 export const useConnectorStore =
@@ -52,6 +55,7 @@ create<ConnectorStore>((set) => ({
     heartbeatReceivedAt: null,
     timeline: [],
     selectedJobId: null,
+    recoveryMessage: null,
 
     setConnected: (value) =>
         set({
@@ -144,6 +148,53 @@ create<ConnectorStore>((set) => ({
     setSelectedJob: (jobId) =>
         set({
             selectedJobId: jobId,
+        }),
+    
+    restoreDashboardState: () => {
+        const selectedJobId =
+            localStorage.getItem("selectedJobId");
+
+        set({
+            selectedJobId,
+        });
+    },
+
+    restoreStatus: (status) =>
+        set({
+            status,
+            connected: status.status === "CONNECTED",
+        }),
+
+    restorePendingInput: (input) =>
+        set({
+            pendingInput: input,
+        }),
+
+    restoreTasks: (tasks) =>
+        set(() => {
+            const jobs: Record<number, Job> = {};
+            tasks.forEach(task => {
+                jobs[task.id] = {
+                    task_id: task.id,
+                    job_id: task.job_id,
+                    //tenant_id: task.tenant_id,
+                    agent_name: task.agent_name,
+                    status: task.status.toUpperCase(),
+                    progress: 0,
+                    started_at: task.received_at,
+                    last_update: task.received_at,
+                };
+            });
+
+            return {
+                jobs,
+            };
+
+        }),
+    
+    setRecoveryMessage: (message) =>
+        set({
+            recoveryMessage: message,
         }),
 }));
 

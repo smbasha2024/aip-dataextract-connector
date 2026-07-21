@@ -1,17 +1,25 @@
 {
   "name": "aip-dataextract-connector-desktop",
   "version": "0.1.0",
+  "type": "module",
   "description": "AIProxys Connector Desktop",
-  "main": "main.js",
+  "main": "dist/main.js",
   "scripts": {
-    "electron": "electron ."
+    "clean": "rimraf dist",
+    "build": "npm run clean && tsc",
+    "electron": "npm run build && electron ."
   },
   "author": "Basha",
   "license": "ISC",
   "dependencies": {
+    "electron-store": "^11.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
     "concurrently": "^10.0.3",
     "electron": "^43.1.1",
-    "electron-is-dev": "^3.0.1",
+    "rimraf": "^6.1.3",
+    "typescript": "^7.0.2",
     "wait-on": "^9.0.10"
   }
 }

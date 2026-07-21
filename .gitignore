@@ -10,3 +10,17 @@ __init__.py
 # Electron
 # ==========================
 desktop/node_modules/
+**/node_modules/
+
+# Build outputs
+desktop/dist/
+frontend/dist/
+
+# Database
+*.db
+
+# macOS
+.DS_Store
+
+# Logs
+*.log

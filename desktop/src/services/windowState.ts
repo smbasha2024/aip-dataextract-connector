@@ -1,5 +1,5 @@
-import Store from "electron-store";
 import { BrowserWindow } from "electron";
+import { settingsStore } from "./settingsStore.js";
 
 interface WindowState {
     width: number;
@@ -8,10 +8,6 @@ interface WindowState {
     y?: number;
     maximized: boolean;
 }
-
-const store = new Store<WindowState>({
-    name: "window-state",
-});
 
 const DEFAULT_STATE: WindowState = {
     width: 1600,
@@ -22,24 +18,30 @@ const DEFAULT_STATE: WindowState = {
 };
 
 export function loadWindowState(): WindowState {
+    const state = settingsStore.get("window");
+
     return {
         ...DEFAULT_STATE,
-        ...store.store,
+        ...state,
     };
 }
 
-export function saveWindowState(win: BrowserWindow): void {
+export function saveWindowState(
+    win: BrowserWindow
+): void {
+
     if (win.isDestroyed()) {
         return;
     }
 
     const bounds = win.getBounds();
 
-    store.set({
+    settingsStore.set("window", {
         width: bounds.width,
         height: bounds.height,
         x: bounds.x,
         y: bounds.y,
         maximized: win.isMaximized(),
     });
+
 }

@@ -1,5 +1,6 @@
 {
   "name": "aip-dataextract-connector-desktop",
+  "productName": "AIProxys Connector",
   "version": "0.1.0",
   "type": "module",
   "description": "AIProxys Connector Desktop",

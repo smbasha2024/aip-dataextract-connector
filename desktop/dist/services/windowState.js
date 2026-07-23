@@ -1,7 +1,4 @@
-import Store from "electron-store";
-const store = new Store({
-    name: "window-state",
-});
+import { settingsStore } from "./settingsStore.js";
 const DEFAULT_STATE = {
     width: 1600,
     height: 950,
@@ -10,9 +7,10 @@ const DEFAULT_STATE = {
     maximized: false,
 };
 export function loadWindowState() {
+    const state = settingsStore.get("window");
     return {
         ...DEFAULT_STATE,
-        ...store.store,
+        ...state,
     };
 }
 export function saveWindowState(win) {
@@ -20,7 +18,7 @@ export function saveWindowState(win) {
         return;
     }
     const bounds = win.getBounds();
-    store.set({
+    settingsStore.set("window", {
         width: bounds.width,
         height: bounds.height,
         x: bounds.x,

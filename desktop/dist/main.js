@@ -3,6 +3,10 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { loadWindowState, saveWindowState, } from "./services/windowState.js";
 import { createTray } from "./services/trayService.js";
+import { isBackgroundNotificationShown, setBackgroundNotificationShown, } from "./services/settingsService.js";
+import { showBackgroundNotification, } from "./services/notificationService.js";
+import { syncAutoLaunch, } from "./services/autoLaunchService.js";
+import { isDockerRunning, getDockerStatus } from "./services/dockerService.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const WINDOW = {
@@ -17,7 +21,9 @@ if (!gotTheLock) {
     app.quit();
     process.exit(0);
 }
+app.setName("AIProxys Connector");
 let mainWindow = null;
+let isQuitting = false;
 async function createWindow() {
     const state = loadWindowState();
     console.log("Creating window...");
@@ -89,7 +95,34 @@ async function createWindow() {
             saveState();
         }
     });
-    mainWindow.on("close", saveState);
+    mainWindow.on("close", (event) => {
+        console.log("Window close event fired");
+        if (isQuitting) {
+            console.log("App is quitting");
+            return;
+        }
+        console.log("Hiding window");
+        event.preventDefault();
+        mainWindow?.hide();
+        console.log("Background notification shown:", isBackgroundNotificationShown());
+        if (!isBackgroundNotificationShown()) {
+            console.log("Should show notification");
+            showBackgroundNotification();
+            setBackgroundNotificationShown();
+        }
+    });
+    mainWindow.on("closed", () => {
+        console.log(">>>>>>>> CLOSED");
+    });
+    mainWindow.on("hide", () => {
+        console.log(">>>>>>>> HIDE");
+    });
+    mainWindow.on("minimize", () => {
+        console.log(">>>>>>>> MINIMIZE");
+    });
+    mainWindow.on("blur", () => {
+        console.log(">>>>>>>> BLUR");
+    });
 }
 async function startApplication() {
     try {
@@ -107,8 +140,12 @@ async function startApplication() {
             //mainWindow.show();
         });
         await createWindow();
+        syncAutoLaunch();
         if (mainWindow) {
-            createTray(mainWindow);
+            createTray(mainWindow, () => {
+                isQuitting = true;
+                app.quit();
+            });
         }
         app.on("activate", async () => {
             if (BrowserWindow.getAllWindows().length === 0) {
@@ -120,17 +157,22 @@ async function startApplication() {
         console.error("Failed to create window:", err);
         throw err;
     }
+    /*
     app.on("activate", async () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             await createWindow();
         }
     });
+    */
 }
 app.whenReady().then(async () => {
     await startApplication();
+    console.log("Docker Running:", await isDockerRunning());
+    console.log("Docker Status:", await getDockerStatus());
 });
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {
+        isQuitting = true;
         app.quit();
     }
 });

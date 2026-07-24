@@ -4,6 +4,9 @@ echo "===================================="
 echo "AIP DataExtract Connector Installer"
 echo "===================================="
 
+IMAGE=ghcr.io/smbasha2024/aip-dataextract-connector
+TAG=${1:-latest}
+
 if ! command -v docker &> /dev/null
 then
     echo "Docker not found."
@@ -19,31 +22,31 @@ if [ $? -ne 0 ]; then
     echo "GHCR Login Failed"
     exit 1
 fi
-docker pull ghcr.io/smbasha2024/aip-databextract-connector:1.0.6
+docker pull ${IMAGE}:${TAG}
 
 mkdir -p data
 mkdir -p logs
 
-docker rm -f aip-databextract-connector >/dev/null 2>&1 || true
+docker rm -f aip-dataextract-connector >/dev/null 2>&1 || true
 
 docker run -d \
-  --name aip-databextract-connector \
+  --name aip-dataextract-connector \
   --restart unless-stopped \
   --env-file .env \
   -p 5050:5050 \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/logs:/app/logs \
-  ghcr.io/smbasha2024/aip-databextract-connector:1.0.6
+  ${IMAGE}:${TAG}
 
-docker ps -a --filter "name=aip-databextract-connector"
+docker ps -a --filter "name=aip-dataextract-connector"
 
-if ! docker ps --filter "name=aip-databextract-connector" --format "{{.Names}}" | grep -q "^aip-databextract-connector$"
+if ! docker ps --filter "name=aip-dataextract-connector" --format "{{.Names}}" | grep -q "^aip-dataextract-connector$"
 then
-docker logs aip-databextract-connector
+docker logs aip-dataextract-connector
 fi
 
 echo ""
 echo "Container Status:"
-docker ps -a --filter "name=aip-databextract-connector"
+docker ps -a --filter "name=aip-dataextract-connector"
 
 echo "Installation Complete"

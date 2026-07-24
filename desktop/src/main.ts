@@ -10,6 +10,8 @@ import {showBackgroundNotification,} from "./services/notificationService.js";
 import {syncAutoLaunch,} from "./services/autoLaunchService.js";
 
 import { isDockerRunning, getDockerStatus } from "./services/dockerService.js";
+import { healthCheck, waitForBackend} from "./services/backendService.js";
+import {startConnectorRuntime} from "./services/connectorRuntimeService.js"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -211,7 +213,9 @@ async function startApplication(): Promise<void> {
 }
 
 app.whenReady().then(async () => {
+    await startConnectorRuntime();
     await startApplication();
+
     console.log(
         "Docker Running:",
         await isDockerRunning()
@@ -220,6 +224,15 @@ app.whenReady().then(async () => {
         "Docker Status:",
         await getDockerStatus()
     );
+
+    console.log("Checking Local Connector...");
+    const healthy = await healthCheck();
+    console.log("Healthy:", healthy);
+
+    console.log("Waiting for connector...");
+    await waitForBackend();
+    console.log("Connector is ready.");
+
 });
 
 app.on("window-all-closed", () => {

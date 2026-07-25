@@ -29,3 +29,9 @@ async def health():
         "last_dashboard_connected": WS_MANAGER.last_connected,
         "last_dashboard_disconnected": WS_MANAGER.last_disconnected
     }
+
+@health_router.get("/version")
+async def version():
+    return {
+        "version": settings.version
+    }

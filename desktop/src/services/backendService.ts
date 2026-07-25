@@ -53,5 +53,19 @@ export async function waitForBackend(): Promise<void> {
 }
 
 export async function getVersion(): Promise<string> {
-    throw new Error("Not implemented");
+    const response = await fetch(
+        `${CONNECTOR.localConnector.baseUrl}/api/health/version`
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            "Unable to retrieve connector version."
+        );
+    }
+
+    const data = await response.json() as {
+        version: string;
+    };
+
+    return data.version;
 }

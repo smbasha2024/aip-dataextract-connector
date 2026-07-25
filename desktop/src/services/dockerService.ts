@@ -2,6 +2,9 @@ import { runCommand } from "./commandRunner.js";
 import { DockerStatus } from "../types/docker.js";
 import { CONNECTOR } from "../config/connector.js";
 
+const DOCKER_WAIT_TIMEOUT_MS = 60000;
+const DOCKER_RETRY_INTERVAL_MS = 1000;
+
 export async function isDockerRunning(): Promise<boolean> {
     try {
         await runCommand(
@@ -152,6 +155,30 @@ export async function restartConnector(): Promise<void> {
     if (!result.success) {
         throw new Error(
             `Failed to restart connector.\n${result.stderr}`
+        );
+    }
+}
+
+export async function waitForDocker(): Promise<void> {
+    const startTime = Date.now();
+
+    while (true) {
+
+        if (await isDockerRunning()) {
+            return;
+        }
+
+        if (
+            Date.now() - startTime >
+            DOCKER_WAIT_TIMEOUT_MS
+        ) {
+            throw new Error(
+                "Timed out waiting for Docker Desktop to start."
+            );
+        }
+
+        await new Promise((resolve) =>
+            setTimeout(resolve, DOCKER_RETRY_INTERVAL_MS)
         );
     }
 }

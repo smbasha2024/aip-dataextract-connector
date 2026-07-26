@@ -6,9 +6,11 @@ import { createTray } from "./services/trayService.js";
 import { isBackgroundNotificationShown, setBackgroundNotificationShown, } from "./services/settingsService.js";
 import { showBackgroundNotification, } from "./services/notificationService.js";
 import { syncAutoLaunch, } from "./services/autoLaunchService.js";
-import { isDockerRunning, getDockerStatus } from "./services/dockerService.js";
-import { healthCheck, waitForBackend } from "./services/backendService.js";
 import { startConnectorRuntime } from "./services/connectorRuntimeService.js";
+import { showStartupError, } from "./services/dialogService.js";
+import { createStartupWindow, updateStartupStatus, closeStartupWindow, } from "./services/startupWindowService.js";
+import { startRuntimeMonitor, stopRuntimeMonitor, } from "./services/runtimeMonitorService.js";
+import { onRuntimeStateChanged, } from "./services/runtimeStateService.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const WINDOW = {
@@ -168,16 +170,45 @@ async function startApplication() {
     */
 }
 app.whenReady().then(async () => {
-    await startConnectorRuntime();
-    await startApplication();
-    console.log("Docker Running:", await isDockerRunning());
-    console.log("Docker Status:", await getDockerStatus());
-    console.log("Checking Local Connector...");
-    const healthy = await healthCheck();
-    console.log("Healthy:", healthy);
-    console.log("Waiting for connector...");
-    await waitForBackend();
-    console.log("Connector is ready.");
+    try {
+        createStartupWindow();
+        await updateStartupStatus("Starting local connector...");
+        await startConnectorRuntime(updateStartupStatus);
+        startRuntimeMonitor();
+        onRuntimeStateChanged((state) => {
+            console.log("Runtime State:", state);
+        });
+        await updateStartupStatus("Opening dashboard...");
+        await startApplication();
+        closeStartupWindow();
+        /*
+        console.log(
+            "Docker Running:",
+            await isDockerRunning()
+        );
+        console.log(
+            "Docker Status:",
+            await getDockerStatus()
+        );
+
+        console.log("Checking Local Connector...");
+        const healthy = await healthCheck();
+        console.log("Healthy:", healthy);
+
+        console.log("Waiting for connector...");
+        await waitForBackend();
+        console.log("Connector is ready.");
+        */
+    }
+    catch (error) {
+        closeStartupWindow();
+        console.error(error);
+        await showStartupError(error instanceof Error ? error.message : "Unknown startup error.");
+        app.quit();
+    }
+});
+app.on("before-quit", () => {
+    stopRuntimeMonitor();
 });
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {

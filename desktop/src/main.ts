@@ -12,6 +12,10 @@ import {syncAutoLaunch,} from "./services/autoLaunchService.js";
 import { isDockerRunning, getDockerStatus } from "./services/dockerService.js";
 import { healthCheck, waitForBackend} from "./services/backendService.js";
 import {startConnectorRuntime} from "./services/connectorRuntimeService.js"
+import {showStartupError,} from "./services/dialogService.js";
+import {createStartupWindow, updateStartupStatus, closeStartupWindow,} from "./services/startupWindowService.js";
+import {startRuntimeMonitor, stopRuntimeMonitor,} from "./services/runtimeMonitorService.js";
+import {onRuntimeStateChanged,} from "./services/runtimeStateService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -213,26 +217,51 @@ async function startApplication(): Promise<void> {
 }
 
 app.whenReady().then(async () => {
-    await startConnectorRuntime();
-    await startApplication();
+    try {
+        createStartupWindow();
 
-    console.log(
-        "Docker Running:",
-        await isDockerRunning()
-    );
-    console.log(
-        "Docker Status:",
-        await getDockerStatus()
-    );
+        await updateStartupStatus("Starting local connector...");
+        await startConnectorRuntime(updateStartupStatus,);
+        startRuntimeMonitor();
+        onRuntimeStateChanged((state) => {
+            console.log("Runtime State:",state,);
+        });
+        await updateStartupStatus("Opening dashboard...");
 
-    console.log("Checking Local Connector...");
-    const healthy = await healthCheck();
-    console.log("Healthy:", healthy);
+        await startApplication();
+        closeStartupWindow();
+        /*
+        console.log(
+            "Docker Running:",
+            await isDockerRunning()
+        );
+        console.log(
+            "Docker Status:",
+            await getDockerStatus()
+        );
 
-    console.log("Waiting for connector...");
-    await waitForBackend();
-    console.log("Connector is ready.");
+        console.log("Checking Local Connector...");
+        const healthy = await healthCheck();
+        console.log("Healthy:", healthy);
 
+        console.log("Waiting for connector...");
+        await waitForBackend();
+        console.log("Connector is ready.");
+        */
+    }
+    catch (error) {
+        closeStartupWindow();
+        console.error(error);
+         await showStartupError(
+            error instanceof Error? error.message : "Unknown startup error."
+        );
+        app.quit();
+    }
+
+});
+
+app.on("before-quit", () => {
+    stopRuntimeMonitor();
 });
 
 app.on("window-all-closed", () => {

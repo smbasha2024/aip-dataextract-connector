@@ -11,6 +11,7 @@ import { showStartupError, } from "./services/dialogService.js";
 import { createStartupWindow, updateStartupStatus, closeStartupWindow, } from "./services/startupWindowService.js";
 import { startRuntimeMonitor, stopRuntimeMonitor, } from "./services/runtimeMonitorService.js";
 import { onRuntimeStateChanged, } from "./services/runtimeStateService.js";
+import { registerRuntimeHandlers, } from "./ipc/runtime.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const WINDOW = {
@@ -42,13 +43,11 @@ async function createWindow() {
         show: false,
         backgroundColor: "#f1f5f9",
         autoHideMenuBar: true,
-        /*
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             contextIsolation: true,
             nodeIntegration: false,
         },
-        */
     });
     mainWindow.setMenu(null);
     // Prevent opening new windows
@@ -143,6 +142,7 @@ async function startApplication() {
             mainWindow.focus();
             //mainWindow.show();
         });
+        registerRuntimeHandlers();
         await createWindow();
         syncAutoLaunch();
         if (mainWindow) {

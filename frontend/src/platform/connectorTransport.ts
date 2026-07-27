@@ -12,4 +12,5 @@ export interface ConnectorTransport {
     stopConnector(): Promise<void>;
     restartConnector(): Promise<void>;
     getVersion(): Promise<string>;
+    onRuntimeStateChanged(callback: (state: RuntimeState) => void,): () => void;
 }

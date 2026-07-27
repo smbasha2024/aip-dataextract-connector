@@ -20,4 +20,10 @@ export class ElectronTransport implements ConnectorTransport {
     async getVersion(): Promise<string> {
         return window.connector.getVersion();
     }
+
+    onRuntimeStateChanged(callback: (state: RuntimeState) => void,): () => void {
+        return window.connector.onRuntimeStateChanged(
+            callback,
+        );
+    }
 }

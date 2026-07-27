@@ -6,6 +6,7 @@ import ConnectorDetailsPanel from "./ConnectorDetailsPanel";
 import { restoreDashboard } from "../../../services/dashboardBootstrap";
 import { connectorWebSocket } from "../../../services/websocket";
 import { formatDuration } from "../../../utils/time";
+import { connectorTransport } from "../../../platform";
 
 export default function Header() {
     const connected = useConnectorStore((s) => s.connected);
@@ -54,7 +55,12 @@ export default function Header() {
         };
     }, []);
 
-    const handleRefresh = async () => {await restoreDashboard();};
+    const handleRefresh = async () => {
+        const runtime = await connectorTransport.getRuntimeState();
+        console.log(runtime); // temporarily //runtimeContext.refresh();
+        await restoreDashboard();
+    };
+
     const handleReconnect = async () => {
         //connectorWebSocket.disconnect();
 
@@ -64,6 +70,7 @@ export default function Header() {
 
         connectorWebSocket.connect();
     };
+    
     const connectedSince = useConnectorStore((s) => s.connectedSince);
     const connectionDuration = formatDuration(connectedSince);
 

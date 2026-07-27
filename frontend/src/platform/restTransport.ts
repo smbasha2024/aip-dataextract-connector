@@ -24,4 +24,10 @@ export class RestTransport implements ConnectorTransport {
     async getVersion(): Promise<string> {
         throw new Error("Not implemented");
     }
+
+    onRuntimeStateChanged(callback: (state: RuntimeState) => void,): () => void {
+        // Browser transport currently has no runtime events.
+        void callback;
+        return () => {};
+    }
 }

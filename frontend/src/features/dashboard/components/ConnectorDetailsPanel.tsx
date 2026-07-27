@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getHealth } from "../../../services/healthService";
 import type { HealthResponse } from "../../../types/health";
+import { connectorTransport } from "../../../platform";
 
 interface Props {
     open: boolean;
@@ -49,6 +50,29 @@ export default function ConnectorDetailsPanel({
     if (!open)
         return null;
 
+    const handleStart = async () => {
+        try {
+            await connectorTransport.startConnector();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleStop = async () => {
+        try {
+            await connectorTransport.stopConnector();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleRestart = async () => {
+        try {
+            await connectorTransport.restartConnector();
+        } catch (error) {
+            console.error(error);
+        }
+    };
     return (
         <div className="fixed inset-0 z-50">
             {/* Background */}
@@ -171,6 +195,59 @@ export default function ConnectorDetailsPanel({
                         </>
                     )}
                     
+                </div>
+
+                <div className="mt-6 border-t pt-4">
+                    <div className="flex justify-center items-center gap-3 mt-2">
+                        <button
+                            onClick={handleStart}
+                            className="
+                                rounded-lg
+                                bg-green-600
+                                px-4
+                                py-2
+                                text-sm
+                                font-medium
+                                text-white
+                                hover:bg-green-700
+                            "
+                        >
+                            ▶ Start
+                        </button>
+
+                        <button
+                            onClick={handleStop}
+                            className="
+                                rounded-lg
+                                bg-red-600
+                                px-4
+                                py-2
+                                text-sm
+                                font-medium
+                                text-white
+                                hover:bg-red-700
+                            "
+                        >
+                            ■ Stop
+                        </button>
+
+                        <button
+                            onClick={handleRestart}
+                            className="
+                                rounded-lg
+                                bg-blue-600
+                                px-4
+                                py-2
+                                text-sm
+                                font-medium
+                                text-white
+                                hover:bg-blue-700
+                            "
+                        >
+                            ↻ Restart
+                        </button>
+
+                    </div>
                 </div>
             </div>
         </div>

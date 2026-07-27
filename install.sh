@@ -17,7 +17,7 @@ fi
 # GitHub Container Registry Login
 echo "Logging into GitHub Container Registry..."
 
-echo <enter key> | docker login ghcr.io -u smbasha2024 --password-stdin
+echo <enter token> | docker login ghcr.io -u smbasha2024 --password-stdin
 if [ $? -ne 0 ]; then
     echo "GHCR Login Failed"
     exit 1

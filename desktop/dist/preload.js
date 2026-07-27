@@ -6,5 +6,14 @@ contextBridge.exposeInMainWorld("connector", {
     stopConnector: () => ipcRenderer.invoke("runtime:stop"),
     restartConnector: () => ipcRenderer.invoke("runtime:restart"),
     getVersion: () => ipcRenderer.invoke("runtime:getVersion"),
+    onRuntimeStateChanged: (callback) => {
+        const listener = (_, state) => {
+            callback(state);
+        };
+        ipcRenderer.on("runtime:stateChanged", listener);
+        return () => {
+            ipcRenderer.removeListener("runtime:stateChanged", listener);
+        };
+    },
 });
 //# sourceMappingURL=preload.js.map

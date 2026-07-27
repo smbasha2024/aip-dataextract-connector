@@ -15,7 +15,7 @@ import {startConnectorRuntime} from "./services/connectorRuntimeService.js"
 import {showStartupError,} from "./services/dialogService.js";
 import {createStartupWindow, updateStartupStatus, closeStartupWindow,} from "./services/startupWindowService.js";
 import {startRuntimeMonitor, stopRuntimeMonitor,} from "./services/runtimeMonitorService.js";
-import {onRuntimeStateChanged,} from "./services/runtimeStateService.js";
+import {onRuntimeStateChanged, subscribeRuntimeState} from "./services/runtimeStateService.js";
 import {registerRuntimeHandlers,} from "./ipc/runtime.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -225,6 +225,16 @@ app.whenReady().then(async () => {
         await updateStartupStatus("Starting local connector...");
         await startConnectorRuntime(updateStartupStatus,);
         startRuntimeMonitor();
+
+         // <-- ADD IT HERE
+        subscribeRuntimeState((state) => {
+            console.log("Sending runtime update:", state.status,);
+
+            if (!mainWindow) { return; }
+
+            mainWindow.webContents.send("runtime:stateChanged", state,);
+        });
+
         onRuntimeStateChanged((state) => {
             console.log("Runtime State:",state,);
         });

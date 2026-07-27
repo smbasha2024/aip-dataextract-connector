@@ -17,6 +17,8 @@ export interface RuntimeState {
     lastUpdated: Date;
 }
 
+export type RuntimeStateListener = (state: RuntimeState) => void;
+
 let runtimeState: RuntimeState = {
     status: RuntimeStatus.Starting,
 
@@ -27,6 +29,7 @@ let runtimeState: RuntimeState = {
     lastUpdated: new Date(),
 };
 
+const listeners = new Set<RuntimeStateListener>();
 const runtimeEvents = new EventEmitter();
 
 /**
@@ -59,6 +62,8 @@ export function updateRuntimeState(state: Partial<RuntimeState>,): void {
             "changed",
             getRuntimeState(),
         );
+        
+        notifyListeners();
     }
 }
 
@@ -95,4 +100,30 @@ export function onRuntimeStateChanged(listener: (state: RuntimeState) => void,):
  */
 export function removeRuntimeStateListener(listener: (state: RuntimeState) => void,): void {
     runtimeEvents.off("changed", listener,);
+}
+
+export function subscribeRuntimeState(
+    listener: RuntimeStateListener,
+): void {
+
+    listeners.add(listener);
+
+}
+
+export function unsubscribeRuntimeState(
+    listener: RuntimeStateListener,
+): void {
+
+    listeners.delete(listener);
+
+}
+
+function notifyListeners(): void {
+
+    for (const listener of listeners) {
+
+        listener(getRuntimeState());
+
+    }
+
 }

@@ -14,6 +14,10 @@ export function enableAutoLaunch(): void {
         true
     );
 
+    if (!app.isPackaged) {
+        return;
+    }
+    //if (app.isPackaged && settings.openAtLogin) {
     app.setLoginItemSettings({
         openAtLogin: true,
     });
@@ -25,12 +29,20 @@ export function disableAutoLaunch(): void {
         false
     );
 
+    if (!app.isPackaged) {
+        return;
+    }
+    //if (app.isPackaged && settings.openAtLogin) {
     app.setLoginItemSettings({
         openAtLogin: false,
     });
 }
 
 export function syncAutoLaunch(): void {
+    if (!app.isPackaged) {
+        return;
+    }
+    //if (app.isPackaged && settings.openAtLogin) {
     app.setLoginItemSettings({
         openAtLogin: isAutoLaunchEnabled(),
     });

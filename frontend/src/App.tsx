@@ -6,10 +6,13 @@ import { useState } from "react";
 import DuplicateDashboard from "./features/dashboard/components/common/DuplicateDashboard";
 //import { useConnectorStore } from "./store/connectorStore";
 import { restoreDashboard } from "./services/dashboardBootstrap";
+import { useRuntime } from "./runtime";
 
 export default function App() {
     const [duplicateDashboard, setDuplicateDashboard] = useState(false);
     //const restoreDashboardState = useConnectorStore((s) => s.restoreDashboardState);
+    const { runtime } = useRuntime();
+    console.log(runtime);
 
     useEffect(() => {
         async function initialize() {

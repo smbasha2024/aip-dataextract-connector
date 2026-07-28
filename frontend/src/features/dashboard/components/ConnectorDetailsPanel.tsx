@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getHealth } from "../../../services/healthService";
 import type { HealthResponse } from "../../../types/health";
 import { connectorTransport } from "../../../platform";
+import { useRuntime } from "../../../runtime";
 
 interface Props {
     open: boolean;
@@ -15,6 +16,7 @@ export default function ConnectorDetailsPanel({
 }: Props) {
     const [health, setHealth] = useState<HealthResponse | null>(null);
     const [loading, setLoading] = useState(false);
+    const { runtime } = useRuntime();
 
     useEffect(() => {
         if (!open)
@@ -115,6 +117,55 @@ export default function ConnectorDetailsPanel({
                     
                     {health && (
                         <>
+                            <Section title="Runtime">
+                                <Row
+                                    label="Status"
+                                    value={
+                                        <span
+                                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                                runtime?.status === "running"
+                                                    ? "bg-green-100 text-green-700"
+                                                    : runtime?.status === "starting"
+                                                    ? "bg-yellow-100 text-yellow-700"
+                                                    : runtime?.status === "error"
+                                                    ? "bg-red-100 text-red-700"
+                                                    : "bg-slate-100 text-slate-700"
+                                            }`}
+                                        >
+                                            {runtime?.status ?? "Unknown"}
+                                        </span>
+                                    }
+                                />
+
+                                <Row
+                                    label="Docker"
+                                    value={
+                                        runtime?.dockerRunning
+                                            ? "Running"
+                                            : "Stopped"
+                                    }
+                                />
+
+                                <Row
+                                    label="Connector"
+                                    value={
+                                        runtime?.connectorRunning
+                                            ? "Running"
+                                            : "Stopped"
+                                    }
+                                />
+
+                                <Row
+                                    label="Backend"
+                                    value={
+                                        runtime?.backendHealthy
+                                            ? "Healthy"
+                                            : "Unavailable"
+                                    }
+                                />
+
+                            </Section>
+
                             <Section title="Connection">
                                 <Row
                                     label="Cloud Connection"
@@ -149,12 +200,12 @@ export default function ConnectorDetailsPanel({
 
                                 <Row
                                     label="Last Connected"
-                                    value={health.last_dashboard_connected}
+                                    value={formatDateTime(health.last_dashboard_connected)}
                                 />
 
                                 <Row
                                     label="Last Disconnected"
-                                    value={health.last_dashboard_disconnected}
+                                    value={formatDateTime(health.last_dashboard_disconnected)}
                                 />
                                 
                             </Section>
@@ -303,3 +354,17 @@ function formatUptime(seconds: number) {
 
     return `${h}h ${m}m ${s}s`;
 }
+
+const formatDateTime = (dateString?: string) => {
+    if (!dateString) return "-";
+
+    return new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+    }).format(new Date(dateString));
+};

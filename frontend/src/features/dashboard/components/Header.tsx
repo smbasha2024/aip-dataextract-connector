@@ -6,23 +6,18 @@ import ConnectorDetailsPanel from "./ConnectorDetailsPanel";
 import { restoreDashboard } from "../../../services/dashboardBootstrap";
 import { connectorWebSocket } from "../../../services/websocket";
 import { formatDuration } from "../../../utils/time";
-import { connectorTransport } from "../../../platform";
+//import { connectorTransport } from "../../../platform";
+//import { useRuntime } from "../../../runtime";
 
 export default function Header() {
     const connected = useConnectorStore((s) => s.connected);
     //const status = useConnectorStore((s) => s.status);
     const [showFocusToast, setShowFocusToast] = useState(false);
-
-    const selectedJobId = useConnectorStore(
-        (s) => s.selectedJobId
-    );
-
-    const setSelectedJob = useConnectorStore(
-        (s) => s.setSelectedJob
-    );
-
+    const selectedJobId = useConnectorStore((s) => s.selectedJobId);
+    const setSelectedJob = useConnectorStore((s) => s.setSelectedJob);
     const [time, setTime] = useState(new Date());
     const [showDetails, setShowDetails] = useState(false);
+    //const { runtime } = useRuntime();
 
     useEffect(() => {
         const id = setInterval(() => {
@@ -56,8 +51,9 @@ export default function Header() {
     }, []);
 
     const handleRefresh = async () => {
-        const runtime = await connectorTransport.getRuntimeState();
-        console.log(runtime); // temporarily //runtimeContext.refresh();
+        //console.log(runtime);
+        // Optional: refresh runtime from Electron
+        //await refresh();
         await restoreDashboard();
     };
 

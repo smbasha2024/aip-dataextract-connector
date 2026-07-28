@@ -1,17 +1,28 @@
 import { runCommand } from "./commandRunner.js";
 import { DockerStatus } from "../types/docker.js";
 import { CONNECTOR } from "../config/connector.js";
+import { getDockerPath } from "./dockerPath.js";
 
 const DOCKER_WAIT_TIMEOUT_MS = 60000;
 const DOCKER_RETRY_INTERVAL_MS = 1000;
 
+const docker = await getDockerPath();
+
 export async function isDockerRunning(): Promise<boolean> {
     try {
-        await runCommand(
-            "docker",
+        const result = await runCommand(
+            docker,
             ["info"]
         );
-        return true;
+
+        console.log("Docker check:", {
+            docker,
+            success: result.success,
+            stdout: result.stdout,
+            stderr: result.stderr,
+            exitCode: result.exitCode
+        });
+        return result.success;
     } catch {
         return false;
     }
@@ -19,7 +30,7 @@ export async function isDockerRunning(): Promise<boolean> {
 
 export async function getDockerStatus(): Promise<DockerStatus> {
     const result = await runCommand(
-        "docker",
+        docker,
         ["info"]
     );
 
@@ -41,7 +52,7 @@ export async function getDockerStatus(): Promise<DockerStatus> {
 
 export async function connectorExists(): Promise<boolean> {
     const result = await runCommand(
-        "docker",
+        docker,
         [
             "ps",
             "-a",
@@ -91,7 +102,7 @@ export async function startDocker(): Promise<void> {
 
 export async function isConnectorRunning(): Promise<boolean> {
     const result = await runCommand(
-        "docker",
+        docker,
         [
             "ps",
             "--filter",
@@ -113,7 +124,7 @@ export async function isConnectorRunning(): Promise<boolean> {
 
 export async function startConnector(): Promise<void> {
     const result = await runCommand(
-        "docker",
+        docker,
         [
             "start",
             CONNECTOR.docker.containerName,
@@ -129,7 +140,7 @@ export async function startConnector(): Promise<void> {
 
 export async function stopConnector(): Promise<void> {
     const result = await runCommand(
-        "docker",
+        docker,
         [
             "stop",
             CONNECTOR.docker.containerName,
@@ -145,7 +156,7 @@ export async function stopConnector(): Promise<void> {
 
 export async function restartConnector(): Promise<void> {
     const result = await runCommand(
-        "docker",
+        docker,
         [
             "restart",
             CONNECTOR.docker.containerName,

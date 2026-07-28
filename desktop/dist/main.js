@@ -73,7 +73,7 @@ async function createWindow() {
         });
     }
     else {
-        await mainWindow.loadFile(path.join(__dirname, "../../frontend/dist/index.html"));
+        await mainWindow.loadFile(path.join(__dirname, "../resources/frontend/index.html"));
     }
     mainWindow.once("ready-to-show", () => {
         if (!mainWindow)

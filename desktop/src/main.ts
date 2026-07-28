@@ -94,7 +94,7 @@ async function createWindow(): Promise<void> {
         });
     } else {
         await mainWindow.loadFile(
-            path.join(__dirname, "../../frontend/dist/index.html")
+            path.join(__dirname, "../resources/frontend/index.html")
         );
     }
 

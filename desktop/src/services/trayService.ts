@@ -1,9 +1,4 @@
-import {
-    Tray,
-    Menu,
-    BrowserWindow,
-} from "electron";
-
+import {Tray, Menu, BrowserWindow, app} from "electron";
 import path from "path";
 import { __dirname } from "../utils/paths.js";
 
@@ -18,10 +13,11 @@ export function createTray(
         return tray;
     }
 
-    const iconPath = path.join(
-        __dirname,
-        "../../assets/icon.png"
-    );
+    const iconPath = app.isPackaged? path.join(
+        process.resourcesPath, "assets", "icon.png")
+        : path.join(__dirname, "../../assets", "icon.png");
+
+    console.log("Tray icon path:", iconPath);
 
     tray = new Tray(iconPath);
     tray.setToolTip("AIProxys Connector");

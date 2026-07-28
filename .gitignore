@@ -24,3 +24,25 @@ frontend/dist/
 
 # Logs
 *.log
+
+# Electron build output
+desktop/dist/
+desktop/release/
+desktop/resources/frontend/assets
+desktop/resources/frontend/sounds
+desktop/resources/frontend/favicon.svg
+desktop/resources/frontend/icons.svg
+
+# Electron packaging artifacts
+desktop/*.dmg
+desktop/*.exe
+desktop/*.AppImage
+desktop/*.deb
+desktop/*.rpm
+
+# Electron builder cache
+desktop/.electron-builder/
+
+# Root build artifacts
+release/
+dist/

@@ -1,15 +1,15 @@
-import { Tray, Menu, app } from "electron";
-import path from "path";
-import { __dirname } from "../utils/paths.js";
+import { Tray, Menu } from "electron";
+import { getTrayIconPath } from "../utils/appPaths.js";
 let tray = null;
 export function createTray(window, onQuit) {
     if (tray) {
         return tray;
     }
-    const iconPath = app.isPackaged ? path.join(process.resourcesPath, "assets", "icon.png")
-        : path.join(__dirname, "../../assets", "icon.png");
-    console.log("Tray icon path:", iconPath);
-    tray = new Tray(iconPath);
+    //const iconPath = app.isPackaged? path.join(
+    //    process.resourcesPath, "assets", "icon.png")
+    //    : path.join(__dirname, "../../assets", "icon.png");
+    //console.log("Tray icon path:", iconPath);
+    tray = new Tray(getTrayIconPath());
     tray.setToolTip("AIProxys Connector");
     tray.setContextMenu(Menu.buildFromTemplate([
         {

@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from "electron";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+//import { fileURLToPath } from "node:url";
+//import path from "node:path";
 import { loadWindowState, saveWindowState, } from "./services/windowState.js";
 import { createTray } from "./services/trayService.js";
 import { isBackgroundNotificationShown, setBackgroundNotificationShown, } from "./services/settingsService.js";
@@ -12,8 +12,18 @@ import { createStartupWindow, updateStartupStatus, closeStartupWindow, } from ".
 import { startRuntimeMonitor, stopRuntimeMonitor, } from "./services/runtimeMonitorService.js";
 import { onRuntimeStateChanged, subscribeRuntimeState } from "./services/runtimeStateService.js";
 import { registerRuntimeHandlers, } from "./ipc/runtime.js";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { getFrontendFile, getPreloadPath, getAppIconPath } from "./utils/appPaths.js";
+import log from "electron-log";
+//const __filename = fileURLToPath(import.meta.url);
+//const __dirname = path.dirname(__filename);
+process.on("uncaughtException", (err) => {
+    console.error("Uncaught Exception:", err);
+    log.error("Uncaught Exception:", err);
+});
+process.on("unhandledRejection", (err) => {
+    console.error("Unhandled Rejection:", err);
+    log.error("Unhandled Rejection:", err);
+});
 const WINDOW = {
     title: "AIProxys Connector",
     width: 1600,
@@ -27,11 +37,15 @@ if (!gotTheLock) {
     process.exit(0);
 }
 app.setName("AIProxys Connector");
+if (process.platform === "darwin" && app.dock) {
+    app.dock.setIcon(getAppIconPath());
+}
 let mainWindow = null;
 let isQuitting = false;
 async function createWindow() {
     const state = loadWindowState();
     console.log("Creating window...");
+    log.info("Creating window...");
     mainWindow = new BrowserWindow({
         title: WINDOW.title,
         width: state.width,
@@ -44,10 +58,11 @@ async function createWindow() {
         backgroundColor: "#f1f5f9",
         autoHideMenuBar: true,
         webPreferences: {
-            preload: path.join(__dirname, "preload.js"),
+            preload: getPreloadPath(),
             contextIsolation: true,
             nodeIntegration: false,
         },
+        icon: getAppIconPath(),
     });
     mainWindow.setMenu(null);
     // Prevent opening new windows
@@ -73,7 +88,7 @@ async function createWindow() {
         });
     }
     else {
-        await mainWindow.loadFile(path.join(__dirname, "../resources/frontend/index.html"));
+        await mainWindow.loadFile(getFrontendFile("index.html"));
     }
     mainWindow.once("ready-to-show", () => {
         if (!mainWindow)
@@ -100,31 +115,40 @@ async function createWindow() {
     });
     mainWindow.on("close", (event) => {
         console.log("Window close event fired");
+        log.info("Window close event fired");
         if (isQuitting) {
             console.log("App is quitting");
+            log.info("App is quitting");
             return;
         }
         console.log("Hiding window");
+        log.info("Hiding window");
         event.preventDefault();
         mainWindow?.hide();
         console.log("Background notification shown:", isBackgroundNotificationShown());
+        log.info("Background notification shown:", isBackgroundNotificationShown());
         if (!isBackgroundNotificationShown()) {
             console.log("Should show notification");
+            log.info("Should show notification");
             showBackgroundNotification();
             setBackgroundNotificationShown();
         }
     });
     mainWindow.on("closed", () => {
         console.log(">>>>>>>> CLOSED");
+        log.info(">>>>>>>> CLOSED");
     });
     mainWindow.on("hide", () => {
         console.log(">>>>>>>> HIDE");
+        log.info(">>>>>>>> HIDE");
     });
     mainWindow.on("minimize", () => {
         console.log(">>>>>>>> MINIMIZE");
+        log.info(">>>>>>>> MINIMIZE");
     });
     mainWindow.on("blur", () => {
         console.log(">>>>>>>> BLUR");
+        log.info(">>>>>>>> BLUR");
     });
 }
 async function startApplication() {
@@ -159,6 +183,7 @@ async function startApplication() {
     }
     catch (err) {
         console.error("Failed to create window:", err);
+        log.error("Failed to create window:", err);
         throw err;
     }
     /*
@@ -178,6 +203,7 @@ app.whenReady().then(async () => {
         // <-- ADD IT HERE
         subscribeRuntimeState((state) => {
             console.log("Sending runtime update:", state.status);
+            log.info("Sending runtime update:", state.status);
             if (!mainWindow) {
                 return;
             }
@@ -185,6 +211,7 @@ app.whenReady().then(async () => {
         });
         onRuntimeStateChanged((state) => {
             console.log("Runtime State:", state);
+            log.info("Runtime State:", state);
         });
         await updateStartupStatus("Opening dashboard...");
         await startApplication();
@@ -211,6 +238,7 @@ app.whenReady().then(async () => {
     catch (error) {
         closeStartupWindow();
         console.error(error);
+        log.error(error);
         await showStartupError(error instanceof Error ? error.message : "Unknown startup error.");
         app.quit();
     }

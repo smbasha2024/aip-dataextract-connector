@@ -16,6 +16,16 @@ export interface AppSettings {
     connector: {
         autoStart: boolean;
         startHidden: boolean;
+
+        startDockerAutomatically: boolean;
+        restartIfStopped: boolean;
+    };
+
+    application: {
+        launchAtLogin: boolean;
+        closeToTray: boolean;
+        minimizeToTray: boolean;
+        autoCheckUpdates: boolean;
     };
 }
 
@@ -35,6 +45,15 @@ export const settingsStore = new Store<AppSettings>({
         connector: {
             autoStart: false,
             startHidden: false,
+            startDockerAutomatically: true,
+            restartIfStopped: true,
+        },
+        
+        application: {
+            launchAtLogin: true,
+            closeToTray: true,
+            minimizeToTray: true,
+            autoCheckUpdates: true,
         },
     },
 });

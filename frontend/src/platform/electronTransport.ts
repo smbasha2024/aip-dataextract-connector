@@ -1,4 +1,5 @@
 import type { ConnectorTransport, RuntimeState,} from "./connectorTransport";
+import type { AppSettings } from "./settings"
 
 export class ElectronTransport implements ConnectorTransport {
     async getRuntimeState(): Promise<RuntimeState> {
@@ -25,5 +26,13 @@ export class ElectronTransport implements ConnectorTransport {
         return window.connector.onRuntimeStateChanged(
             callback,
         );
+    }
+
+    async getSettings(): Promise<AppSettings> {
+        return window.connector.getSettings();
+    }
+
+    async updateSettings(settings: AppSettings,): Promise<AppSettings> {
+        return window.connector.updateSettings(settings);
     }
 }

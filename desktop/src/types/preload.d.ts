@@ -17,6 +17,8 @@ declare global {
             restartConnector(): Promise<void>;
             getVersion(): Promise<string>;
             onRuntimeStateChanged(callback: (state: any) => void,): () => void;
+            getSettings(): Promise<any>;
+            updateSettings(settings: any): Promise<any>;
         };
 
     }

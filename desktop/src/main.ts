@@ -17,6 +17,7 @@ import {createStartupWindow, updateStartupStatus, closeStartupWindow,} from "./s
 import {startRuntimeMonitor, stopRuntimeMonitor,} from "./services/runtimeMonitorService.js";
 import {onRuntimeStateChanged, subscribeRuntimeState} from "./services/runtimeStateService.js";
 import {registerRuntimeHandlers,} from "./ipc/runtime.js";
+import {registerSettingsHandlers,} from "./ipc/settingsHandlers.js";
 import { getAssetPath, getFrontendFile, getPreloadPath, getAppIconPath} from "./utils/appPaths.js";
 
 import log from "electron-log";
@@ -218,6 +219,7 @@ async function startApplication(): Promise<void> {
         });
 
         registerRuntimeHandlers();
+        registerSettingsHandlers();
         await createWindow();
         syncAutoLaunch();
 

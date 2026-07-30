@@ -1,4 +1,5 @@
 import type {ConnectorTransport, RuntimeState,} from "./connectorTransport";
+import type { AppSettings } from "./settings";
 
 export class RestTransport implements ConnectorTransport {
     async getRuntimeState(): Promise<RuntimeState> {
@@ -29,5 +30,14 @@ export class RestTransport implements ConnectorTransport {
         // Browser transport currently has no runtime events.
         void callback;
         return () => {};
+    }
+
+    async getSettings(): Promise<AppSettings> {
+        throw new Error("Not implemented");
+    }
+
+    async updateSettings(settings: AppSettings,): Promise<AppSettings> {
+        console.log("settings: ", settings);
+        throw new Error("Not implemented");
     }
 }

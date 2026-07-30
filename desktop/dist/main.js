@@ -12,6 +12,7 @@ import { createStartupWindow, updateStartupStatus, closeStartupWindow, } from ".
 import { startRuntimeMonitor, stopRuntimeMonitor, } from "./services/runtimeMonitorService.js";
 import { onRuntimeStateChanged, subscribeRuntimeState } from "./services/runtimeStateService.js";
 import { registerRuntimeHandlers, } from "./ipc/runtime.js";
+import { registerSettingsHandlers, } from "./ipc/settingsHandlers.js";
 import { getFrontendFile, getPreloadPath, getAppIconPath } from "./utils/appPaths.js";
 import log from "electron-log";
 //const __filename = fileURLToPath(import.meta.url);
@@ -167,6 +168,7 @@ async function startApplication() {
             //mainWindow.show();
         });
         registerRuntimeHandlers();
+        registerSettingsHandlers();
         await createWindow();
         syncAutoLaunch();
         if (mainWindow) {

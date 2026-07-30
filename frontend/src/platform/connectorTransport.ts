@@ -1,3 +1,4 @@
+import type { AppSettings } from "./settings"
 export interface RuntimeState {
     status: string;
     dockerRunning: boolean;
@@ -13,4 +14,6 @@ export interface ConnectorTransport {
     restartConnector(): Promise<void>;
     getVersion(): Promise<string>;
     onRuntimeStateChanged(callback: (state: RuntimeState) => void,): () => void;
+    getSettings(): Promise<AppSettings>;
+    updateSettings(settings: AppSettings,): Promise<AppSettings>;
 }

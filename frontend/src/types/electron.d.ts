@@ -8,9 +8,9 @@ declare global {
             stopConnector(): Promise<void>;
             restartConnector(): Promise<void>;
             getVersion(): Promise<string>;
-            onRuntimeStateChanged(
-                callback: (state: RuntimeState) => void,
-            ): () => void;
+            onRuntimeStateChanged(callback: (state: RuntimeState) => void,): () => void;
+            getSettings(): Promise<AppSettings>;
+            updateSettings(settings: AppSettings,): Promise<AppSettings>;
         };
     }
 }

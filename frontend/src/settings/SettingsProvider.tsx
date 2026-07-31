@@ -40,6 +40,7 @@ export function SettingsProvider({ children }: Props) {
     const save = useCallback(async (settings: AppSettings) => {
         const updated = await connectorTransport.updateSettings(settings);
         setSettings(updated);
+        //return updated;
     }, []);
 
     const value = useMemo(

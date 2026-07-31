@@ -3,6 +3,7 @@ import { useConnectorStore } from "../../../store/connectorStore";
 import { CONFIG } from "../../../config/config"
 import { HeartPulse } from "lucide-react";
 import ConnectorDetailsPanel from "./ConnectorDetailsPanel";
+import SettingsPanel from "./SettingsPanel";
 import { restoreDashboard } from "../../../services/dashboardBootstrap";
 import { connectorWebSocket } from "../../../services/websocket";
 import { formatDuration } from "../../../utils/time";
@@ -17,6 +18,7 @@ export default function Header() {
     const setSelectedJob = useConnectorStore((s) => s.setSelectedJob);
     const [time, setTime] = useState(new Date());
     const [showDetails, setShowDetails] = useState(false);
+    const [showSettings, setShowSettings,] = useState(false);
     //const { runtime } = useRuntime();
 
     useEffect(() => {
@@ -86,48 +88,44 @@ export default function Header() {
 
                         <button
                             onClick={() => setShowDetails(true)}
-                            className="
-                                inline-flex
-                                items-center
-                                gap-2
-                                rounded-full
-                                border
-                                border-red-200
-                                bg-red-50
-                                px-3
-                                py-1
-                                text-sm
-                                text-red-600
-                                hover:bg-red-100
-                                transition
-                            "
+                            className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-sm text-red-600 hover:bg-red-100 transition"
                             title="Connector Details"
                         >
                             <HeartPulse size={16} />
-
                             Health
-
                         </button>
+
+                        <button
+                            onClick={() => setShowSettings(true)}
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm hover:bg-slate-100"
+                        >
+                            ⚙ Settings
+                        </button>
+
                         <ConnectorDetailsPanel
                             open={showDetails}
                             onClose={() => setShowDetails(false)}
+                        />
+
+                        <SettingsPanel
+                            open={showSettings}
+                            onClose={() => setShowSettings(false)}
                         />
                     </div>
 
                     <button
                         onClick={handleRefresh}
-                        className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-100"
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm hover:bg-slate-100"
                     >
                         🔄 Refresh
                     </button>
 
                     <button
                         onClick={handleReconnect}
-                        className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm hover:bg-slate-100"
                     >
                         🔌 Reconnect
                     </button>
-
                 </div>
 
                 {/* RIGHT */}

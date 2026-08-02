@@ -33,6 +33,8 @@
   "build": {
     "appId": "com.aiproxys.connector",
     "productName": "AIProxys Connector",
+     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "copyright": "Copyright © 2026 AIProxys",
     "directories": {
       "output": "release"
     },
@@ -65,10 +67,20 @@
         "nsis"
       ]
     },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AIProxys Connector",
+      "deleteAppDataOnUninstall": false
+    },
     "linux": {
       "icon": "assets/icon.png",
+      "category": "Utility",
       "target": [
-        "AppImage"
+        "AppImage",
+        "deb"
       ]
     }
   }

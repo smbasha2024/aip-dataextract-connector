@@ -89,12 +89,7 @@
         "AppImage",
         "deb"
       ],
-      "maintainer": "S.M. Basha <basha@aiproxybots.com>",
-      "desktopName": "AIProxys Connector",
-      "syncDesktopName": true,
-      "desktop": {
-        "Name": "AIProxys Connector"
-      }
+      "maintainer": "S.M. Basha <basha@aiproxybots.com>"
     }
   }
 }
